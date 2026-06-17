@@ -11621,43 +11621,120 @@ bool IsKeyPressedMap(ImGuiKey key, bool repeat = true) {
 void KeybindSelector(const char* label, int* key) {
     ImGui::PushID(label);
 
+    // Build display string using label + current key name
+    char display[128];
     if (*key != 0)
-        ImGui::Text("Aimbot Keybind [%c]", *key); // Display the key if set
+        snprintf(display, sizeof(display), "%s [%s]", label, GetKeyName(*key));
     else
-        ImGui::Text("Aimbot Keybind [..]"); // Display [...] if no key is set
+        snprintf(display, sizeof(display), "%s [None]", label);
 
-    if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+    // Highlight if awaiting input (we use a per-label static)
+    static const char* s_pWaitingLabel = nullptr;
+    bool isWaiting = (s_pWaitingLabel == label);
+
+    if (isWaiting)
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
+
+    ImGui::Text("%s", isWaiting ? (snprintf(display, sizeof(display), "%s [Press key...]", label), display) : display);
+
+    if (isWaiting)
+        ImGui::PopStyleColor();
+
+    if (ImGui::IsItemHovered())
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
+    // Left-click: enter waiting state
+    if (ImGui::IsItemClicked(0))
+        s_pWaitingLabel = label;
+
+    // Right-click: clear keybind
+    if (ImGui::IsItemClicked(1)) {
+        *key = 0;
+        if (s_pWaitingLabel == label)
+            s_pWaitingLabel = nullptr;
     }
 
-    if (ImGui::IsItemClicked()) {
-        ImGui::OpenPopup("Keybind Selector");
-    }
-
-    if (ImGui::BeginPopup("Keybind Selector")) {
-        ImGui::Text("Press any key");
-
-        for (int i = 0; i < 512; i++) {
-            if (IsKeyPressedMap((ImGuiKey)i)) {
-                *key = i;
-                ImGui::CloseCurrentPopup();
+    // If waiting for this specific label, scan for key press
+    if (isWaiting) {
+        // Escape cancels
+        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+            s_pWaitingLabel = nullptr;
+        } else {
+            for (int i = 1; i < 256; i++) {
+                if (GetAsyncKeyState(i) & 0x8000) {
+                    // Skip modifier-only presses to avoid swallowing Escape
+                    if (i == VK_ESCAPE) { s_pWaitingLabel = nullptr; break; }
+                    *key = i;
+                    s_pWaitingLabel = nullptr;
+                    break;
+                }
             }
         }
-        ImGui::EndPopup();
     }
+
     ImGui::PopID();
 }
 
 // Helper function to get the name of a key
 const char* GetKeyName(int vk) {
-    static char name[128];
-    if (vk == 0)
-        return "None";
-    if (vk >= '0' && vk <= '9' || vk >= 'A' && vk <= 'Z')
-        sprintf_s(name, "%c", vk);
-    else
-        sprintf_s(name, "0x%02X", vk);
-    return name;
+    static char name[64];
+    if (vk == 0) return "None";
+    switch (vk) {
+        case VK_LBUTTON:  return "M1";
+        case VK_RBUTTON:  return "M2";
+        case VK_MBUTTON:  return "M3";
+        case VK_XBUTTON1: return "M4";
+        case VK_XBUTTON2: return "M5";
+        case VK_BACK:     return "Backspace";
+        case VK_TAB:      return "Tab";
+        case VK_RETURN:   return "Enter";
+        case VK_SHIFT:    return "Shift";
+        case VK_CONTROL:  return "Ctrl";
+        case VK_LSHIFT:   return "L-Shift";
+        case VK_RSHIFT:   return "R-Shift";
+        case VK_LCONTROL: return "L-Ctrl";
+        case VK_RCONTROL: return "R-Ctrl";
+        case VK_MENU:     return "Alt";
+        case VK_LMENU:    return "L-Alt";
+        case VK_RMENU:    return "R-Alt";
+        case VK_PAUSE:    return "Pause";
+        case VK_CAPITAL:  return "CapsLock";
+        case VK_ESCAPE:   return "Escape";
+        case VK_SPACE:    return "Space";
+        case VK_PRIOR:    return "PgUp";
+        case VK_NEXT:     return "PgDn";
+        case VK_END:      return "End";
+        case VK_HOME:     return "Home";
+        case VK_LEFT:     return "Left";
+        case VK_UP:       return "Up";
+        case VK_RIGHT:    return "Right";
+        case VK_DOWN:     return "Down";
+        case VK_INSERT:   return "Insert";
+        case VK_DELETE:   return "Delete";
+        case VK_LWIN:     return "L-Win";
+        case VK_RWIN:     return "R-Win";
+        case VK_NUMPAD0:  return "Num0";
+        case VK_NUMPAD1:  return "Num1";
+        case VK_NUMPAD2:  return "Num2";
+        case VK_NUMPAD3:  return "Num3";
+        case VK_NUMPAD4:  return "Num4";
+        case VK_NUMPAD5:  return "Num5";
+        case VK_NUMPAD6:  return "Num6";
+        case VK_NUMPAD7:  return "Num7";
+        case VK_NUMPAD8:  return "Num8";
+        case VK_NUMPAD9:  return "Num9";
+        case VK_F1:  return "F1";  case VK_F2:  return "F2";
+        case VK_F3:  return "F3";  case VK_F4:  return "F4";
+        case VK_F5:  return "F5";  case VK_F6:  return "F6";
+        case VK_F7:  return "F7";  case VK_F8:  return "F8";
+        case VK_F9:  return "F9";  case VK_F10: return "F10";
+        case VK_F11: return "F11"; case VK_F12: return "F12";
+        default:
+            if (vk >= '0' && vk <= '9' || vk >= 'A' && vk <= 'Z')
+                { sprintf_s(name, "%c", vk); return name; }
+            sprintf_s(name, "0x%02X", vk);
+            return name;
+    }
 }
 
 #else

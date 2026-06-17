@@ -8,13 +8,25 @@ void Movement::Bhop()
 	if (!l4d2::local || !l4d2::cmd)
 		return;
 
-	// In L4D2 SDK, get move type from netvar or cast
 	int moveType = l4d2::local->m_MoveType();
 	if (moveType == MOVETYPE_LADDER || moveType == MOVETYPE_NOCLIP)
 		return;
 
-	if (!(l4d2::local->m_fFlags() & FL_ONGROUND))
+	const bool holdingJump = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+
+	if (!holdingJump)
+		return;
+
+	if (l4d2::local->m_fFlags() & FL_ONGROUND)
+	{
+		// On the ground and holding space — ensure jump is set this tick
+		l4d2::cmd->buttons |= IN_JUMP;
+	}
+	else
+	{
+		// In the air — strip jump so we don’t double-jump
 		l4d2::cmd->buttons &= ~IN_JUMP;
+	}
 }
 
 void Movement::EdgeJump()

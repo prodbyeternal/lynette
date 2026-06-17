@@ -65,9 +65,13 @@ bool __fastcall ClientMode::CreateMove::Detour(void* ecx, void* edx, float input
 			}
 			f::misc->run(pLocal, cmd);
 
-			// 3. Sim single prediction step for EdgeJump / LongJump flags check
-			Prediction::Begin(cmd);
-			Prediction::Finish();
+			// 3. Sim single prediction step for EdgeJump / LongJump / MiniJump flags check
+			// Only run when at least one edge feature is active (it's expensive)
+			if (Vars::Movement::bEdgeJump || Vars::Movement::bLongJump || Vars::Movement::bMiniJump)
+			{
+				Prediction::Begin(cmd);
+				Prediction::Finish();
+			}
 
 			// 4. EdgeJump, LongJump, and MiniJump
 			Movement::EdgeJump();

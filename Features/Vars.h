@@ -77,7 +77,6 @@ namespace Vars
 	namespace Misc {
 		inline bool Namestealer = false;
 		inline bool AutoStrafe = true;
-		inline bool Bunnyhop = true;
 		inline bool SequenceFreezing = true;
 		inline bool DisableInterp = true;
 		inline int SequenceFreezingValue = 0;
@@ -86,7 +85,7 @@ namespace Vars
 		inline bool AutoShove = true;
 		inline bool ThirdPerson = true;
 		inline int ThirdPersonDistance = 100;
-		inline CVar<int> ThirdPersonKey{ VK_B, L"Sequence Freezing" };
+		inline CVar<int> ThirdPersonKey{ VK_B, L"Third Person" };
 		inline bool Teleport = true;
 		inline CVar<int> TeleportKey{ VK_P, L"Teleport Key" };
 
