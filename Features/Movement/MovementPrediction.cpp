@@ -97,7 +97,7 @@ void UpdateButtonState(CUserCmd* cmd)
 
 void Prediction::Begin(CUserCmd* cmd)
 {
-	if (!I::MoveHelper || !l4d2::local)
+	if (!I::MoveHelper || !l4d2::local || !I::GameMovement)
 		return;
 
 	// Set current command offset: usually m_pCurrentCommand is at m_nButtons - 12 (or similar)
@@ -150,12 +150,12 @@ void Prediction::Begin(CUserCmd* cmd)
 
 	I::MoveHelper->SetHost(l4d2::local);
 
-	// StartTrackPredictionErrors
+	// StartTrackPredictionErrors — method on IPrediction, not IGameMovement
 	using StartTrackPredictionErrorsFn = void(__thiscall*)(void*, C_BasePlayer*);
 	static auto StartTrackPredictionErrors = reinterpret_cast<StartTrackPredictionErrorsFn>(U::Pattern.Find("client.dll", "55 8B EC 56 8B F1 8B 0D ? ? ? ? 57"));
-	if (StartTrackPredictionErrors)
+	if (StartTrackPredictionErrors && I::Prediction)
 	{
-		StartTrackPredictionErrors(I::GameMovement, l4d2::local);
+		StartTrackPredictionErrors(I::Prediction, l4d2::local);
 	}
 
 	if (cmd->impulse)
@@ -182,15 +182,15 @@ void Prediction::Begin(CUserCmd* cmd)
 
 void Prediction::Finish()
 {
-	if (!I::MoveHelper || !l4d2::local)
+	if (!I::MoveHelper || !l4d2::local || !I::GameMovement)
 		return;
 
-	// FinishTrackPredictionErrors
+	// FinishTrackPredictionErrors — method on IPrediction, not IGameMovement
 	using FinishTrackPredictionErrorsFn = void(__thiscall*)(void*, C_BasePlayer*);
 	static auto FinishTrackPredictionErrors = reinterpret_cast<FinishTrackPredictionErrorsFn>(U::Pattern.Find("client.dll", "55 8B EC 56 8B F1 8B 0D ? ? ? ? 57 ? ? ? ? ? ? 75 14"));
-	if (FinishTrackPredictionErrors)
+	if (FinishTrackPredictionErrors && I::Prediction)
 	{
-		FinishTrackPredictionErrors(I::GameMovement, l4d2::local);
+		FinishTrackPredictionErrors(I::Prediction, l4d2::local);
 	}
 
 	I::MoveHelper->SetHost(nullptr);
