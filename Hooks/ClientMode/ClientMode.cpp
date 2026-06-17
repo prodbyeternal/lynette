@@ -8,6 +8,9 @@
 #include "../../Features/Sequence Freezing/SequenceFreezing.h"
 #include "../../Features/AutoShove/AutoShove.h"
 #include "../../Features/Anti Aim/Anti Aim.h"
+#include "../../Features/Movement/MovementPrediction.h"
+#include "../../Features/Movement/Movement.h"
+#include "../../SDK/L4D2/Interfaces/IConVar.h"
 using namespace Hooks;
 
 bool __fastcall ClientMode::ShouldDrawFog::Detour(void* ecx, void* edx)
@@ -35,18 +38,43 @@ bool __fastcall ClientMode::CreateMove::Detour(void* ecx, void* edx, float input
 
 		if (pWeapon)
 		{
+			// Initialize movement feature globals
+			l4d2::local = pLocal;
+			l4d2::cmd = cmd;
+			static auto Sv_gravity = I::Cvars->FindVar("sv_gravity");
+			l4d2::half_gravity_per_tick = -(((Sv_gravity->GetFloat()) / 2.f) * I::GlobalVars->interval_per_tick);
+
+			Vector SavedViewAngles = cmd->viewangles;
+
+			// 1. Update prediction state
+			Prediction::Update();
+
+			// 2. Bunnyhop (pre-prediction)
+			Movement::Bhop();
+
 			if (Vars::Misc::Teleport)
 			{
 				if ((GetAsyncKeyState(Vars::Misc::TeleportKey.m_Var)) < 0) { // AirStuck with ViewAngles reset (((Teleport to 0, 0, 0))) (Reversed from some L4D2 hack)
-					cmd->viewangles.x = 3.4028235e38;
-					cmd->viewangles.y = 3.4028235e38;
-					cmd->viewangles.z = 3.4028235e38;
-					cmd->upmove = 3.4028235e38;
-					cmd->forwardmove = 3.4028235e38;
-					cmd->sidemove = 3.4028235e38;
+					cmd->viewangles.x = 3.4028235e38f;
+					cmd->viewangles.y = 3.4028235e38f;
+					cmd->viewangles.z = 3.4028235e38f;
+					cmd->upmove = 3.4028235e38f;
+					cmd->forwardmove = 3.4028235e38f;
+					cmd->sidemove = 3.4028235e38f;
 				}
 			}
-			f::misc->run(pLocal, cmd); // run bhop before prediction for obv reasons
+			f::misc->run(pLocal, cmd);
+
+			// 3. Sim single prediction step for EdgeJump / LongJump flags check
+			Prediction::Begin(cmd);
+			Prediction::Finish();
+
+			// 4. EdgeJump, LongJump, and MiniJump
+			Movement::EdgeJump();
+			Movement::LongJump();
+			Movement::MiniJump();
+
+			// 5. Engine prediction and rage features
 			F::EnginePrediction.Start(pLocal, cmd);
 			{
 				f::SequenceFreezing.Run(cmd, pLocal);
@@ -56,9 +84,12 @@ bool __fastcall ClientMode::CreateMove::Detour(void* ecx, void* edx, float input
 				f::aa.run(cmd, BSendPacket);
 			}
 			F::EnginePrediction.Finish(pLocal, cmd);
-			viewangle = cmd->viewangles;
-			//*BSendPacket = Vars::DT::Shifted == Vars::Exploits::SpeedHackValue;
 
+			// 6. Fix movement orientation and execute EdgeBug scanning
+			Movement::FixMovement(SavedViewAngles);
+			Movement::EdgeBug();
+
+			viewangle = cmd->viewangles;
 		}
 	}
 

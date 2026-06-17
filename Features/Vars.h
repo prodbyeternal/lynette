@@ -169,4 +169,24 @@ namespace Vars
 		inline int ticks = 0;
 		inline int Shifted = 0;
 	}
+	namespace Movement
+	{
+		inline bool bBhop = false;
+		inline bool bEdgeJump = false;
+		inline int kEdgeJump = 0;
+		inline bool bLongJump = false;
+		inline int kLongJump = 0;
+		inline bool bMiniJump = false;
+		inline int kMiniJump = 0;
+		inline bool bEdgeBug = false;
+		inline int kEdgeBug = 0;
+		inline int EdgeBugTicks = 12;
+		inline bool ExtendedEdgeBugPaths = false;
+		inline int EdgeBugPaths = 2;
+		inline float EdgeBugAngle = 15.f;
+		inline bool bLAN = true;
+		inline bool bCSGameMovement = false;
+		inline bool EdgeBugNoDamage = false;
+		inline float fAiraccelerate = 10.f;
+	}
 }

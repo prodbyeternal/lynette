@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="DllMain.cpp" />
@@ -53,6 +53,10 @@
     <ClCompile Include="Features\NewNewMenu\babagui\imgui_impl_dx9.cpp" />
     <ClCompile Include="Features\NewNewMenu\babagui\imgui_impl_win32.cpp" />
     <ClCompile Include="Features\NewNewMenu\babagui\imgui_widgets.cpp" />
+    <ClCompile Include="Features\NewNewMenu\babagui\imgui_tables.cpp" />
+    <ClCompile Include="Features\Movement\Bhop.cpp" />
+    <ClCompile Include="Features\Movement\EdgeBug.cpp" />
+    <ClCompile Include="Features\Movement\MovementPrediction.cpp" />
     <ClCompile Include="Features\NewNewMenu\babagui\imgui_stdlib.cpp" />
     <ClCompile Include="Hooks\BaseAnimating\BaseAnimating.cpp" />
     <ClCompile Include="Features\Anti Aim\Anti Aim.cpp" />
@@ -418,6 +422,9 @@
     <ClInclude Include="SDK\Steam\Win32Library.h" />
     <ClInclude Include="Features\NewNewMenu\Dropdown.h" />
     <ClInclude Include="Features\NewNewMenu\Menu.h" />
+    <ClInclude Include="Features\NewNewMenu\Header.h" />
+    <ClInclude Include="Features\Movement\Movement.h" />
+    <ClInclude Include="Features\Movement\MovementPrediction.h" />
     <ClInclude Include="Features\NewNewMenu\MenuBackground.h" />
     <ClInclude Include="Features\NewNewMenu\MenuControls.h" />
     <ClInclude Include="Features\NewNewMenu\babagui\imconfig.h" />

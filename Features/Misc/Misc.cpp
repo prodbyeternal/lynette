@@ -1,4 +1,4 @@
-﻿#include "Misc.h"
+#include "Misc.h"
 #include "../../SDK/L4D2/Interfaces/IConVar.h"
 #include "../../SDK/EntityCache/entitycache.h"
 #include <Windows.h>
@@ -76,9 +76,9 @@ void CMisc::movement(C_TerrorPlayer* pLocal, CUserCmd* pCmd)
 		//	if (pCmd->mousedx > 1 || pCmd->mousedx < -1)  //> 1 < -1 so we have some wiggle room
 		//		pCmd->sidemove = pCmd->mousedx > 1 ? 450.f : -450.f;
 
-		//Bunnyhop
-		if (Vars::Misc::Bunnyhop)
-			pCmd->buttons &= ~IN_JUMP;
+		//Bunnyhop (using ported Movement::Bhop instead)
+		//if (Vars::Misc::Bunnyhop)
+		//	pCmd->buttons &= ~IN_JUMP;
 	}
 }
 
