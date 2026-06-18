@@ -66,33 +66,11 @@ int Prediction::GetTickBase(CUserCmd* cmd)
 
 void UpdateButtonState(CUserCmd* cmd)
 {
-	if (!l4d2::local)
-		return;
-
-	const int buttons = cmd->buttons;
-	const int local_buttons = l4d2::local->m_nButtons();
-	const int buttons_changed = buttons ^ local_buttons;
-
-	// In L4D2 SDK, m_afButtonLast, m_afButtonPressed, m_afButtonReleased are inline methods or direct offsets.
-	// Let's verify that the base player has direct accessors.
-	// If m_afButtonLast/m_afButtonPressed/m_afButtonReleased are not standard netvars in the target project,
-	// we can compute them directly or write them to the local player offsets.
-	// Let's check if the target project defines player button state variables. 
-	// Usually they are located at standard offsets:
-	// m_nButtons = 0xE4 (or m_nButtons netvar), m_afButtonLast = m_nButtons - 4, m_afButtonPressed = m_nButtons + 4, m_afButtonReleased = m_nButtons + 8
-	// Let's map them safely via offsets or cast.
-	int* pButtons = const_cast<int*>(&(l4d2::local->m_nButtons()));
-	if (pButtons)
-	{
-		int* pButtonLast = pButtons - 1;
-		int* pButtonPressed = pButtons + 1;
-		int* pButtonReleased = pButtons + 2;
-
-		*pButtonLast = local_buttons;
-		*pButtons = buttons;
-		*pButtonPressed = buttons_changed & buttons;
-		*pButtonReleased = buttons_changed & (~buttons);
-	}
+	// Note: Button state updates (m_afButtonLast, m_afButtonPressed, m_afButtonReleased)
+	// are NOT adjacent to m_nButtons in L4D2's memory layout. The old pointer arithmetic
+	// was writing to wrong offsets and corrupting player memory.
+	// The engine handles button state updates internally during ProcessMovement,
+	// so we don't need to manually write these fields for our prediction to work.
 }
 
 void Prediction::Begin(CUserCmd* cmd)
@@ -100,15 +78,9 @@ void Prediction::Begin(CUserCmd* cmd)
 	if (!I::MoveHelper || !l4d2::local || !I::GameMovement)
 		return;
 
-	// Set current command offset: usually m_pCurrentCommand is at m_nButtons - 12 (or similar)
-	// Let's locate and assign it safely.
-	// In the target SDK, if there is a helper to set prediction random seed, we use it.
-	int* pButtons = const_cast<int*>(&(l4d2::local->m_nButtons()));
-	if (pButtons)
-	{
-		CUserCmd** ppCurrentCommand = reinterpret_cast<CUserCmd**>(pButtons - 3);
-		*ppCurrentCommand = cmd;
-	}
+	// Note: m_pCurrentCommand write removed — the old pointer arithmetic (pButtons - 3)
+	// pointed to m_afButtonLast, not m_pCurrentCommand. The engine sets m_pCurrentCommand
+	// internally during prediction, so we don't need to write it manually.
 
 	if (static bool once = false; !once) 
 	{
@@ -139,28 +111,12 @@ void Prediction::Begin(CUserCmd* cmd)
 	I::GlobalVars->frametime = TICK_INTERVAL;
 	I::GlobalVars->tickcount = nTickBase;
 
-	// In L4D2 SDK, forced and disabled buttons are usually at m_nButtons + 12 and m_nButtons + 16 respectively.
-	if (pButtons)
-	{
-		int buttonForced = *(pButtons + 3);
-		int buttonDisabled = *(pButtons + 4);
-		cmd->buttons |= buttonForced;
-		cmd->buttons &= ~buttonDisabled;
-	}
+	// Note: Forced/disabled button reads and impulse write removed.
+	// The old pointer arithmetic (pButtons + 3/4/5) pointed to wrong memory.
+	// These are non-essential for movement prediction — the engine applies
+	// forced/disabled buttons and impulse internally during ProcessMovement.
 
 	I::MoveHelper->SetHost(l4d2::local);
-
-	// Note: StartTrackPredictionErrors omitted — pattern scan returns wrong address in this build.
-
-	if (cmd->impulse)
-	{
-		// Set impulse: usually m_nImpulse is at m_nButtons + 20
-		if (pButtons)
-		{
-			int* pImpulse = pButtons + 5;
-			*pImpulse = cmd->impulse;
-		}
-	}
 
 	UpdateButtonState(cmd);
 

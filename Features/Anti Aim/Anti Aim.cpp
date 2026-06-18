@@ -32,7 +32,9 @@ void antiaim::run(CUserCmd* cmd, bool* BSendPacket)
 {
     if (Vars::HvH::Enabled && cmd)
     {
-        C_TerrorPlayer* pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer*>();
+        auto* ent = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer());
+        if (!ent) return;
+        C_TerrorPlayer* pLocal = ent->As<C_TerrorPlayer*>();
 
         Vector oldView = cmd->viewangles;
         float oldF = cmd->forwardmove;
@@ -41,7 +43,7 @@ void antiaim::run(CUserCmd* cmd, bool* BSendPacket)
         static bool flip = false;
         flip = !flip;
 
-        if ((cmd->buttons && IN_USE) || (cmd->buttons && IN_ATTACK) || (cmd->buttons && IN_ATTACK2))
+        if ((cmd->buttons & IN_USE) || (cmd->buttons & IN_ATTACK) || (cmd->buttons & IN_ATTACK2))
             return;
 
         if (pLocal == nullptr ||
@@ -74,8 +76,12 @@ void antiaim::run(CUserCmd* cmd, bool* BSendPacket)
                 break;
 
             case 5: // spin
-                cmd->viewangles.y = fmodf((Vars::HvH::SpinSpeed), 360.f);
+            {
+                static float spinAngle = 0.f;
+                spinAngle = fmodf(spinAngle + Vars::HvH::SpinSpeed, 360.f);
+                cmd->viewangles.y = spinAngle;
                 break;
+            }
 
             case 6: // random
                 cmd->viewangles.y = U::Math.RandomFloat(-180.f, 180.f);
@@ -124,11 +130,11 @@ void antiaim::run(CUserCmd* cmd, bool* BSendPacket)
                 if (BSendPacket)
                     cmd->viewangles.y += Vars::HvH::FakeOffset;
 
-                *BSendPacket == false;
+                *BSendPacket = false;
             }
             else
             {
-                *BSendPacket == true;
+                *BSendPacket = true;
             }
         }
 

@@ -11,10 +11,19 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 LONG WINAPI WndProc::Detour(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (g_Menu.isOpen) {
-		//g_Interfaces.InputSystem->ResetInputState();
-		//g_Interfaces.InputSystem->EnableInput(false);
 		ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-		return 1;
+
+		// Only block input messages — let system messages (paint, close, focus, etc.) pass through
+		switch (uMsg) {
+		case WM_LBUTTONDOWN: case WM_LBUTTONUP: case WM_LBUTTONDBLCLK:
+		case WM_RBUTTONDOWN: case WM_RBUTTONUP: case WM_RBUTTONDBLCLK:
+		case WM_MBUTTONDOWN: case WM_MBUTTONUP: case WM_MBUTTONDBLCLK:
+		case WM_MOUSEWHEEL: case WM_MOUSEMOVE:
+		case WM_KEYDOWN: case WM_KEYUP: case WM_SYSKEYDOWN: case WM_SYSKEYUP:
+		case WM_CHAR: case WM_SYSCHAR:
+		case WM_XBUTTONDOWN: case WM_XBUTTONUP:
+			return 1; // Eat input messages so the game doesn't process them
+		}
 	}
 	return CallWindowProcW(WndProc, hWnd, uMsg, wParam, lParam);
 }

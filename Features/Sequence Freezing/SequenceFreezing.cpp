@@ -14,6 +14,7 @@ void IDFDemo::RemoveConds(C_TerrorPlayer* local, CUserCmd* cmd, int value, bool 
 		if (cmd->buttons & IN_ATTACK || cmd->buttons & IN_ATTACK2) return;
 
 	INetChannel* ch = (INetChannel*)I::EngineClient->GetNetChannelInfo();
+	if (!ch) return;
 	int& m_nOutSequenceNr = *(int*)((unsigned)ch + 8);
 	m_nOutSequenceNr += value;
 }

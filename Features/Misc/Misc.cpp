@@ -35,7 +35,7 @@ void AutoStrafe(C_TerrorPlayer* pLocal, CUserCmd* pCmd)
 
 			constexpr auto perfectDelta = [](float speed, C_TerrorPlayer* pLocal) noexcept
 			{
-				static auto speedVar = pLocal->m_flMaxspeed();
+				auto speedVar = pLocal->m_flMaxspeed();
 				static auto airVar = 10.0f; //I::Cvars->FindVar("sv_airaccelerate");
 
 				static auto wishSpeed = 15.0f;

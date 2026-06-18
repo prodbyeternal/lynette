@@ -23,7 +23,7 @@ bool check_edge_bug(CUserCmd* cmd, bool& brk) {
 		return true;
 	}
 	else if (unpredicted_velocity.z < 0.f && predicted_velocity.z > unpredicted_velocity.z && predicted_velocity.z < 0.f) {
-		int z_vel = predicted_velocity.z;
+		float z_vel = predicted_velocity.z;
 
 		Prediction::Begin(cmd);
 		Prediction::Finish();
@@ -133,6 +133,8 @@ void Movement::EdgeBug()
 							break;
 					}
 				}
+				if (EdgeBug_data.Ticks_Left)
+					break;
 			}
 			else {
 				CUserCmd predictcmd = *l4d2::cmd;

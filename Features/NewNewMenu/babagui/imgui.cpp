@@ -11630,6 +11630,7 @@ void KeybindSelector(const char* label, int* key) {
 
     // Highlight if awaiting input (we use a per-label static)
     static const char* s_pWaitingLabel = nullptr;
+    static int s_waitFrames = 0; // delay to avoid eating the click that entered waiting mode
     bool isWaiting = (s_pWaitingLabel == label);
 
     if (isWaiting)
@@ -11644,8 +11645,10 @@ void KeybindSelector(const char* label, int* key) {
         ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
     // Left-click: enter waiting state
-    if (ImGui::IsItemClicked(0))
+    if (ImGui::IsItemClicked(0)) {
         s_pWaitingLabel = label;
+        s_waitFrames = 2; // skip 2 frames so the click release doesn't get captured
+    }
 
     // Right-click: clear keybind
     if (ImGui::IsItemClicked(1)) {
@@ -11656,17 +11659,23 @@ void KeybindSelector(const char* label, int* key) {
 
     // If waiting for this specific label, scan for key press
     if (isWaiting) {
-        // Escape cancels
-        if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
-            s_pWaitingLabel = nullptr;
+        if (s_waitFrames > 0) {
+            s_waitFrames--;
         } else {
-            for (int i = 1; i < 256; i++) {
-                if (GetAsyncKeyState(i) & 0x8000) {
-                    // Skip modifier-only presses to avoid swallowing Escape
-                    if (i == VK_ESCAPE) { s_pWaitingLabel = nullptr; break; }
-                    *key = i;
-                    s_pWaitingLabel = nullptr;
-                    break;
+            // Escape cancels
+            if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
+                s_pWaitingLabel = nullptr;
+            } else {
+                for (int i = 1; i < 256; i++) {
+                    // Skip mouse buttons — they conflict with ImGui click handling
+                    if (i == VK_LBUTTON || i == VK_RBUTTON || i == VK_MBUTTON)
+                        continue;
+                    if (GetAsyncKeyState(i) & 0x8000) {
+                        if (i == VK_ESCAPE) { s_pWaitingLabel = nullptr; break; }
+                        *key = i;
+                        s_pWaitingLabel = nullptr;
+                        break;
+                    }
                 }
             }
         }

@@ -30,11 +30,13 @@ bool __fastcall ClientMode::CreateMove::Detour(void* ecx, void* edx, float input
 	__asm mov pep, ebp;
 	bool* BSendPacket = reinterpret_cast<bool*>(*reinterpret_cast<char**>(pep) - 0x1C);
 
-	C_TerrorPlayer* pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer*>();
+	auto* pEnt = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer());
+	C_TerrorPlayer* pLocal = pEnt ? pEnt->As<C_TerrorPlayer*>() : nullptr;
 
 	if (pLocal && !pLocal->deadflag())
 	{
-		C_TerrorWeapon* pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon*>();
+		auto* pWpnEnt = pLocal->GetActiveWeapon();
+		C_TerrorWeapon* pWeapon = pWpnEnt ? pWpnEnt->As<C_TerrorWeapon*>() : nullptr;
 
 		if (pWeapon)
 		{

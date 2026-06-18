@@ -65,7 +65,7 @@ Vector chitscan::GetBestAngle(C_BaseEntity* pEntity, C_TerrorPlayer* pLocal)
 	if (Hitbox.IsZero())
 		return Vector();
 
-	return U::Math.CalcAngle(pLocal->Weapon_ShootPosition(), GetBestHitbox(pEntity, pLocal));
+	return U::Math.CalcAngle(pLocal->Weapon_ShootPosition(), Hitbox);
 }
 
 inline float CalcFov(const Vector& src, const Vector& dst)
@@ -76,7 +76,7 @@ inline float CalcFov(const Vector& src, const Vector& dst)
 	Vector v_dst = Vector();
 	U::Math.AngleVectors(dst, &v_dst);
 
-	float result = RAD2DEG(acos(v_dst.Dot(v_src) / v_dst.LenghtSqr()));
+	float result = RAD2DEG(acos(std::clamp(v_dst.Dot(v_src), -1.f, 1.f)));
 
 	if (!isfinite(result) || isinf(result) || isnan(result))
 		result = 0.0f;

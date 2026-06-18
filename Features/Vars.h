@@ -56,65 +56,65 @@ namespace Vars
 		}
 	}
 	namespace Hitscan {
-		inline bool bEnable = true;
-		inline bool bAutoShoot = true;
-		inline bool bKey = true;
+		inline bool bEnable = false;
+		inline bool bAutoShoot = false;
+		inline bool bKey = false;
 		inline bool bSilentAim = false;
 		inline int  iFov = 30;
 		inline int  MaxPlayers = 2;
 		inline int  iHitbox = 0; // 0 - Auto 1 - Head 2 - Body 3 - Pelvis 
 		//inline int  Key; // R.
 		inline CVar<int> AimKey{ VK_LSHIFT, L"Aim Key" };
-		inline bool MultiPointIfNoHitboxesAreVisible;
-		inline bool AimFovCircle = true;
+		inline bool MultiPointIfNoHitboxesAreVisible = false;
+		inline bool AimFovCircle = false;
 		inline Color AimFov = {255, 255, 255, 255};
 	}
 	namespace Exploits {
-		inline bool Speedhack = true;
+		inline bool Speedhack = false;
 		inline CVar<int> Key{ VK_CONTROL, L"SpeedHack" };
 		inline int SpeedHackValue = 5;
 	}
 	namespace Misc {
 		inline bool Namestealer = false;
-		inline bool AutoStrafe = true;
-		inline bool SequenceFreezing = true;
-		inline bool DisableInterp = true;
-		inline int SequenceFreezingValue = 0;
+		inline bool AutoStrafe = false;
+		inline bool SequenceFreezing = false;
+		inline bool DisableInterp = false;
+		inline int SequenceFreezingValue = 1;
 		//inline int  SequenceFreezingKey = 8; // R.
 		inline CVar<int> Key{ VK_MENU, L"Sequence Freezing" };
-		inline bool AutoShove = true;
-		inline bool ThirdPerson = true;
+		inline bool AutoShove = false;
+		inline bool ThirdPerson = false;
 		inline int ThirdPersonDistance = 100;
 		inline CVar<int> ThirdPersonKey{ VK_B, L"Third Person" };
-		inline bool Teleport = true;
+		inline bool Teleport = false;
 		inline CVar<int> TeleportKey{ VK_P, L"Teleport Key" };
 
 	}
 	namespace SkyBox
 	{
-		inline bool Enable;
-		inline bool RainbowSkyBox;
+		inline bool Enable = false;
+		inline bool RainbowSkyBox = false;
 		inline Color color = { 240, 137, 229, 255 };
 	}
 	namespace Removals {
-		inline bool NoSpread = true;
-		inline bool NoRecoil = true;
-		inline bool NoVisualRecoil = true; 
-		inline bool BoomerVisual = true;
+		inline bool NoSpread = false;
+		inline bool NoRecoil = false;
+		inline bool NoVisualRecoil = false; 
+		inline bool BoomerVisual = false;
 	}
 	namespace ESP {
-		inline bool Enabled = true;
-		inline bool players = true;
-		inline bool infected = true;
-		inline bool specialinfected = true;
-		inline bool Box = true;
-		inline bool Weapons = true;
-		inline bool Minigun = true;
-		inline bool Ammo = true;
-		inline bool Healthbar = true;
+		inline bool Enabled = false;
+		inline bool players = false;
+		inline bool infected = false;
+		inline bool specialinfected = false;
+		inline bool Box = false;
+		inline bool Weapons = false;
+		inline bool Minigun = false;
+		inline bool Ammo = false;
+		inline bool Healthbar = false;
 		inline bool EnemyOnly = true;
-		inline bool Name = true;
-		inline bool LocalESP = true;
+		inline bool Name = false;
+		inline bool LocalESP = false;
 
 		inline bool ViewModelChanger = false;
 		inline float viewmodel_x = 1.0f;
@@ -131,9 +131,9 @@ namespace Vars
 	}
 	namespace Chams
 	{
-		inline bool Players = true;
-		inline bool PlayerInfected = true;
-		inline bool Infected = true;
+		inline bool Players = false;
+		inline bool PlayerInfected = false;
+		inline bool Infected = false;
 		inline bool ViewmodelGun = false;
 		inline Color ViewmodelGunColor = { 240, 137, 229, 255 };
 		inline int  ViewmodelMaterial = 0; // 0 - Material 1 - Flat 2 - WireFrame
@@ -153,17 +153,17 @@ namespace Vars
 		inline bool AntiAim = false;
 
 		inline bool FakeAngle = false;
-		inline float FakeOffset;
+		inline float FakeOffset = 0.f;
 
-		inline int RealYaw;
-		inline int PitchMode;
-		inline float SpinSpeed;
-		inline float DesyncOffset;
+		inline int RealYaw = 0;
+		inline int PitchMode = 0;
+		inline float SpinSpeed = 0.f;
+		inline float DesyncOffset = 0.f;
 	}
 	namespace DT
 	{
-		inline bool Enable = true;
-		inline bool Recharging;
+		inline bool Enable = false;
+		inline bool Recharging = false;
 		inline bool shifting = false;
 		inline int ticks = 0;
 		inline int Shifted = 0;
