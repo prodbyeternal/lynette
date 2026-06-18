@@ -264,42 +264,50 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 	// EdgeBug debug visual: draw the predicted scan path in world space so you can
 	// see exactly where the edgebug routine is projecting your movement.
 	if (Vars::Movement::bEdgeBug && Vars::Movement::EdgeBugDebugVisual &&
-		I::EngineClient->IsInGame() && !I::EngineVGui->IsGameUIVisible() && !ebpos.empty())
+		I::EngineClient->IsInGame() && !I::EngineVGui->IsGameUIVisible())
 	{
-		ImDrawList* fg = ImGui::GetForegroundDrawList();
-		ImU32 pathCol = ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 0.9f));
-		ImU32 nodeCol = ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.9f));
+		// ebpos is written/cleared on the game thread (CreateMove) while we read it
+		// here on the render thread. Snapshot it into a local copy first so a
+		// concurrent clear() can't cause a subscript-out-of-range crash.
+		std::vector<Vector> path = ebpos;
 
-		Vector prevScreen;
-		bool havePrev = false;
-		for (size_t i = 0; i < ebpos.size(); ++i)
+		if (!path.empty())
 		{
-			Vector screen;
-			if (!G::Util.W2S(ebpos[i], screen))
+			ImDrawList* fg = ImGui::GetForegroundDrawList();
+			ImU32 pathCol = ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 0.9f));
+			ImU32 nodeCol = ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.9f));
+
+			Vector prevScreen;
+			bool havePrev = false;
+			for (size_t i = 0; i < path.size(); ++i)
 			{
-				havePrev = false;
-				continue;
+				Vector screen;
+				if (!G::Util.W2S(path[i], screen))
+				{
+					havePrev = false;
+					continue;
+				}
+
+				// Node marker at each predicted tick position.
+				fg->AddCircleFilled(ImVec2(screen.x, screen.y), 2.5f, nodeCol);
+
+				// Connect consecutive on-screen nodes with a line.
+				if (havePrev)
+					fg->AddLine(ImVec2(prevScreen.x, prevScreen.y), ImVec2(screen.x, screen.y), pathCol, 2.0f);
+
+				prevScreen = screen;
+				havePrev = true;
 			}
 
-			// Node marker at each predicted tick position.
-			fg->AddCircleFilled(ImVec2(screen.x, screen.y), 2.5f, nodeCol);
-
-			// Connect consecutive on-screen nodes with a line.
-			if (havePrev)
-				fg->AddLine(ImVec2(prevScreen.x, prevScreen.y), ImVec2(screen.x, screen.y), pathCol, 2.0f);
-
-			prevScreen = screen;
-			havePrev = true;
-		}
-
-		// Highlight the final/landing node when an edgebug was actually detected.
-		if (Movement::Should_EB)
-		{
-			Vector landing;
-			if (G::Util.W2S(ebpos.back(), landing))
+			// Highlight the final/landing node when an edgebug was actually detected.
+			if (Movement::Should_EB && !path.empty())
 			{
-				ImU32 hot = ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 1.f));
-				fg->AddCircle(ImVec2(landing.x, landing.y), 6.0f, hot, 16, 2.0f);
+				Vector landing;
+				if (G::Util.W2S(path.back(), landing))
+				{
+					ImU32 hot = ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 1.f));
+					fg->AddCircle(ImVec2(landing.x, landing.y), 6.0f, hot, 16, 2.0f);
+				}
 			}
 		}
 	}
