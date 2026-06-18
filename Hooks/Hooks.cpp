@@ -24,6 +24,7 @@ void CGlobal_Hooks::Init()
 		WndProc::Initialize();
 		EndSceneHook::Init();
 		BaseAnimating::Init();
+		ParticleColor::Init();
 	}
 
 	XASSERT(MH_EnableHook(MH_ALL_HOOKS) != MH_STATUS::MH_OK);

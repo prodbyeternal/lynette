@@ -241,6 +241,8 @@
     <ClCompile Include="Entry\Entry.cpp" />
     <ClCompile Include="Features\Anti Aim\Anti Aim.cpp" />
     <ClCompile Include="Features\AutoShove\AutoShove.cpp" />
+    <ClCompile Include="Features\Config\Config.cpp" />
+    <ClCompile Include="Features\CvarTools\CvarTools.cpp" />
     <ClCompile Include="Features\EnginePrediction\EnginePrediction.cpp" />
     <ClCompile Include="Features\ESP\ESP.cpp" />
     <ClCompile Include="Features\Hitscan\Hitscan.cpp" />
@@ -271,6 +273,7 @@
     <ClCompile Include="Hooks\Hooks.cpp" />
     <ClCompile Include="Hooks\ModelRenderSystem\ModelRenderSystem.cpp" />
     <ClCompile Include="Hooks\ModelRender\ModelRender.cpp" />
+    <ClCompile Include="Hooks\ParticleColor\ParticleColor.cpp" />
     <ClCompile Include="Hooks\Panels\Panels.cpp" />
     <ClCompile Include="Hooks\SequenceTransitioner\SequenceTransitioner.cpp" />
     <ClCompile Include="Hooks\TerrorGameRules\TerrorGameRules.cpp" />
@@ -302,6 +305,8 @@
     <ClInclude Include="Entry\Entry.h" />
     <ClInclude Include="Features\Anti Aim\Anti Aim.h" />
     <ClInclude Include="Features\AutoShove\AutoShove.h" />
+    <ClInclude Include="Features\Config\Config.h" />
+    <ClInclude Include="Features\CvarTools\CvarTools.h" />
     <ClInclude Include="Features\EnginePrediction\EnginePrediction.h" />
     <ClInclude Include="Features\ESP\ESP.h" />
     <ClInclude Include="Features\Hitscan\Hitscan.h" />
@@ -341,6 +346,7 @@
     <ClInclude Include="Hooks\Hooks.h" />
     <ClInclude Include="Hooks\ModelRenderSystem\ModelRenderSystem.h" />
     <ClInclude Include="Hooks\ModelRender\ModelRender.h" />
+    <ClInclude Include="Hooks\ParticleColor\ParticleColor.h" />
     <ClInclude Include="Hooks\Panels\Panels.h" />
     <ClInclude Include="Hooks\SequenceTransitioner\SequenceTransitioner.h" />
     <ClInclude Include="Hooks\TerrorGameRules\TerrorGameRules.h" />

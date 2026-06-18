@@ -63,6 +63,7 @@ namespace Vars
 		inline int  iFov = 30;
 		inline int  MaxPlayers = 2;
 		inline int  iHitbox = 0; // 0 - Auto 1 - Head 2 - Body 3 - Pelvis 
+		inline int  AimMode = 1; // 0 - Always On, 1 - Hold, 2 - Toggle
 		//inline int  Key; // R.
 		inline CVar<int> AimKey{ VK_LSHIFT, L"Aim Key" };
 		inline bool MultiPointIfNoHitboxesAreVisible = false;
@@ -96,6 +97,31 @@ namespace Vars
 		inline bool RainbowSkyBox = false;
 		inline Color color = { 240, 137, 229, 255 };
 	}
+	namespace Fog
+	{
+		inline bool Enable = false;          // override fog color
+		inline Color color = { 120, 120, 140, 255 };
+		inline bool RemoveFog = false;       // disable fog entirely
+	}
+	namespace Grenade
+	{
+		inline bool TrajectoryPrediction = false; // draw throw arc for thrown items
+		inline Color TrajectoryColor = { 210, 100, 185, 255 };
+
+		// Projectile color changer (boomer bile / molotov fire chams)
+		inline bool ProjectileColorChanger = false;
+		inline Color BileColor = { 0, 255, 0, 255 };
+		inline Color MolotovColor = { 255, 100, 0, 255 };
+
+		// Molotov fire range visual (ground circle at predicted landing)
+		inline bool MolotovRangeVisual = false;
+		inline float MolotovRangeRadius = 150.f; // approximate inferno spread radius
+		inline Color MolotovRangeColor = { 255, 80, 0, 200 };
+
+		// Blood color changer (particle-based; see note in code)
+		inline bool BloodColorChanger = false;
+		inline Color BloodColor = { 255, 0, 0, 255 };
+	}
 	namespace Removals {
 		inline bool NoSpread = false;
 		inline bool NoRecoil = false;
@@ -126,6 +152,17 @@ namespace Vars
 		inline float m_fViewFov = 50.0f;
 		inline float m_fFov = 90.0f;
 
+		// Aspect ratio changer (drives r_aspectratio, 0.0 - 2.0)
+		inline bool m_bAspectRatioChanger = false;
+		inline float m_fAspectRatio = 0.0f;
+
+		// Flashlight FOV changer (drives r_flashlightfov, bypasses sv_cheats)
+		inline bool m_bFlashlightFovChanger = false;
+		inline float m_fFlashlightFov = 45.0f;
+
+		// Unlock hidden/developer console commands
+		inline bool m_bUnhideCommands = false;
+
 		inline Color PlayerColor = { 0, 255, 0, 255 };
 		inline Color PlayerInfectedColor = { 255, 255, 0, 255 };
 		inline Color InfectedColor = { 0, 255, 255, 255 };
@@ -149,8 +186,20 @@ namespace Vars
 		inline bool Infected = false;
 		inline bool ViewmodelGun = false;
 		inline Color ViewmodelGunColor = { 240, 137, 229, 255 };
-		inline int  ViewmodelMaterial = 0; // 0 - Solid, 1 - Flat, 2 - Wireframe
+		inline int  ViewmodelMaterial = 0; // legacy global material (kept for config compat)
 		inline bool ThroughWalls = false;
+
+		// Per-category material selectors.
+		// 0 - Solid, 1 - Flat, 2 - Wireframe, 3 - Glow/Additive, 4 - Shaded (normal2)
+		inline int  SurvivorMaterial = 0;
+		inline int  SIMaterial = 0;
+		inline int  CIMaterial = 0;
+		inline int  GunMaterial = 0;
+
+		// Per-category through-walls toggles.
+		inline bool SurvivorThroughWalls = false;
+		inline bool SIThroughWalls = false;
+		inline bool CIThroughWalls = false;
 
 		inline Color PlayerColor = { 0, 255, 0, 255 };
 		inline Color PlayerInfectedColor = { 255, 255, 0, 255 };
@@ -200,6 +249,7 @@ namespace Vars
 		inline bool bLAN = true;
 		inline bool bCSGameMovement = false;
 		inline bool EdgeBugNoDamage = false;
+		inline bool EdgeBugDebugVisual = false; // draw the predicted edgebug path in-world
 		inline float fAiraccelerate = 10.f;
 	}
 }

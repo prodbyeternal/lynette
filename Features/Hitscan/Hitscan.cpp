@@ -253,7 +253,31 @@ void chitscan::run(C_TerrorPlayer* pLocal, CUserCmd* pCmd)
 	/* */
 	if (!Vars::Hitscan::bEnable)
 		return;
-	if (!GetAsyncKeyState(Vars::Hitscan::AimKey.m_Var))
+
+	// Aim activation modes: 0 = Always On, 1 = Hold, 2 = Toggle
+	static bool s_aimToggle = false;
+	static bool s_prevToggleKey = false;
+	bool keyDown = (GetAsyncKeyState(Vars::Hitscan::AimKey.m_Var) & 0x8000) != 0;
+
+	bool aimActive = false;
+	switch (Vars::Hitscan::AimMode)
+	{
+	case 0: // Always On
+		aimActive = true;
+		break;
+	case 2: // Toggle (flip state on key press edge)
+		if (keyDown && !s_prevToggleKey)
+			s_aimToggle = !s_aimToggle;
+		aimActive = s_aimToggle;
+		break;
+	case 1: // Hold
+	default:
+		aimActive = keyDown;
+		break;
+	}
+	s_prevToggleKey = keyDown;
+
+	if (!aimActive)
 		return;
 	auto pEntity = GetBestTarget(pLocal);
 	if (!pEntity || !pLocal)
@@ -287,13 +311,25 @@ void chitscan::run(C_TerrorPlayer* pLocal, CUserCmd* pCmd)
 	if (!Vars::Hitscan::bSilentAim)
 		I::EngineClient->SetViewAngles(pCmd->viewangles);
 
-	if (Vars::Hitscan::bSilentAim)
-		FixMovement(pCmd, m_vOldViewAngle, m_fOldForwardMove, m_fOldSideMove);
+	// NOTE: We intentionally do NOT call FixMovement here. The user wants their
+	// WASD movement to stay exactly as they input it, even while the aimbot/silent
+	// aim rotates the command viewangles. Re-projecting the move vector caused the
+	// player to drift/strafe unexpectedly when the aim angle differed from the
+	// view angle, so movement is left untouched.
+	(void)m_fOldForwardMove;
+	(void)m_fOldSideMove;
+	(void)m_vOldViewAngle;
 
 
 	if (Vars::Hitscan::bAutoShoot)
 	{
-		pCmd->buttons |= IN_ATTACK;
+		// Only press attack when the weapon is actually able to fire this tick.
+		// Spamming IN_ATTACK every tick makes it skip shots / fire unreliably.
+		C_TerrorWeapon* pWeapon = pLocal->GetActiveWeapon()->As<C_TerrorWeapon*>();
+		if (!pWeapon || pWeapon->CanPrimaryAttack())
+			pCmd->buttons |= IN_ATTACK;
+		else
+			pCmd->buttons &= ~IN_ATTACK;
 	}
 	if (Vars::Misc::DisableInterp && (pCmd->buttons & IN_ATTACK))
 		pCmd->tick_count = TIME_TO_TICKS(pEntity->m_flSimulationTime() + std::max(I::Cvars->FindVar("cl_interp")->GetFloat(), I::Cvars->FindVar("cl_interp_ratio")->GetFloat() / I::Cvars->FindVar("cl_updaterate")->GetFloat()));

@@ -73,27 +73,38 @@ void __fastcall ModelRender::DrawModelExecute::Detour(void* ecx, void* edx, cons
 	if (!I::EngineClient->IsInGame())
 		Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
 
+	// Known-good base materials available in this build. We toggle material-var
+	// flags on these to achieve the different chams styles instead of relying on
+	// CreateMaterial() (the KeyValues patterns are stale in this build).
 	static IMaterial* materialAmbient = I::MaterialSystem->FindMaterial("debug/debugambientcube", "Model textures");
-	static IMaterial* materialFlat = I::MaterialSystem->FindMaterial("debug/debugdrawflat", "Model textures");
-	static IMaterial* materialWire = I::MaterialSystem->FindMaterial("___wireframe_dx9_5", "Model textures");
+	static IMaterial* materialGlow    = I::MaterialSystem->FindMaterial("dev/glow_color", "Model textures");
+	static IMaterial* materialShaded  = I::MaterialSystem->FindMaterial("debug/debugdrawflat", "Model textures");
 	static IMaterial* vomitboomer = I::MaterialSystem->FindMaterial("particle/screenspaceboomervomit", "Particle textures");
 
-	auto applyChams = [&](IMaterial* mat, const Color& col, bool ignoreZ) {
+	// Material modes: 0 - Solid, 1 - Flat, 2 - Wireframe, 3 - Glow/Additive, 4 - Shaded
+	auto pickMat = [&](int mode) -> IMaterial* {
+		switch (mode)
+		{
+		case 3: return (materialGlow && !materialGlow->IsErrorMaterial()) ? materialGlow : materialAmbient;
+		case 4: return (materialShaded && !materialShaded->IsErrorMaterial()) ? materialShaded : materialAmbient;
+		default: return materialAmbient; // solid/flat/wireframe share the ambient base
+		}
+	};
+
+	auto applyChams = [&](int mode, const Color& col, bool ignoreZ) {
+		IMaterial* mat = pickMat(mode);
+		if (!mat || mat->IsErrorMaterial())
+			return;
 		mat->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, ignoreZ);
 		mat->SetMaterialVarFlag(MATERIAL_VAR_ZNEARER, true);
 		mat->SetMaterialVarFlag(MATERIAL_VAR_NOCULL, true);
 		mat->SetMaterialVarFlag(MATERIAL_VAR_NOFOG, true);
-		mat->SetMaterialVarFlag(MATERIAL_VAR_HALFLAMBERT, true);
-		mat->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, (Vars::Chams::ViewmodelMaterial == 2));
+		mat->SetMaterialVarFlag(MATERIAL_VAR_HALFLAMBERT, (mode == 0 || mode == 4)); // lit for solid/shaded
+		mat->SetMaterialVarFlag(MATERIAL_VAR_FLAT, mode == 1);                        // flat unlit
+		mat->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, mode == 2);                   // wireframe
 		mat->ColorModulate(col.r() / 255.f, col.g() / 255.f, col.b() / 255.f);
 		mat->AlphaModulate(col.a() / 255.f);
 		I::ModelRender->ForcedMaterialOverride(mat);
-	};
-
-	auto getActiveMat = []() -> IMaterial* {
-		if (Vars::Chams::ViewmodelMaterial == 1) return materialFlat;
-		if (Vars::Chams::ViewmodelMaterial == 2) return materialWire;
-		return materialAmbient;
 	};
 
 	if (pInfo.pModel && pInfo.entity_index)
@@ -150,54 +161,79 @@ void __fastcall ModelRender::DrawModelExecute::Detour(void* ecx, void* edx, cons
 		{
 			if (pEntity->GetClientClass())
 			{
-				IMaterial* chamMat = getActiveMat();
-				if (chamMat)
+				if (Vars::Chams::Players && (pEntity->GetClientClass()->m_ClassID == SurvivorBot || pEntity->GetClientClass()->m_ClassID == CTerrorPlayer))
 				{
-					if (Vars::Chams::Players && (pEntity->GetClientClass()->m_ClassID == SurvivorBot || pEntity->GetClientClass()->m_ClassID == CTerrorPlayer))
-					{
-						const bool bIsSurvivor = (pEntity->As<C_TerrorPlayer*>()->GetTeamNumber() == TEAM_SURVIVOR);
-						const Color clrTeam = bIsSurvivor ? Vars::Chams::PlayerColor : Vars::Chams::PlayerInfectedColor;
+					const bool bIsSurvivor = (pEntity->As<C_TerrorPlayer*>()->GetTeamNumber() == TEAM_SURVIVOR);
 
-						if (bIsSurvivor)
-						{
-							if (pEntity->As<C_TerrorPlayer*>()->IsAlive())
-							{
-								if (Vars::Chams::ThroughWalls)
-								{
-									applyChams(chamMat, clrTeam, true);
-									Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
-								}
-								applyChams(chamMat, clrTeam, false);
-							}
-						}
-						else if (Vars::Chams::PlayerInfected)
-						{
-							if (pEntity->As<C_TerrorPlayer*>()->IsAlive())
-							{
-								if (Vars::Chams::ThroughWalls)
-								{
-									applyChams(chamMat, clrTeam, true);
-									Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
-								}
-								applyChams(chamMat, clrTeam, false);
-							}
-						}
-					}
-					else if (Vars::Chams::PlayerInfected && (pEntity->IsZombie() || pEntity->m_usSolidFlags() == 4 || pEntity->GetClientClass()->m_ClassID == Witch))
+					if (bIsSurvivor)
 					{
-						if (pEntity->ValidEntity(pEntity->As<C_Infected*>()->m_nSequence(), pEntity->As<C_Infected*>()->m_usSolidFlags()))
+						if (pEntity->As<C_TerrorPlayer*>()->IsAlive())
 						{
-							if (Vars::Chams::ThroughWalls)
+							if (Vars::Chams::SurvivorThroughWalls)
 							{
-								applyChams(chamMat, Vars::Chams::PlayerInfectedColor, true);
+								applyChams(Vars::Chams::SurvivorMaterial, Vars::Chams::PlayerColor, true);
 								Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
 							}
-							applyChams(chamMat, Vars::Chams::PlayerInfectedColor, false);
+							applyChams(Vars::Chams::SurvivorMaterial, Vars::Chams::PlayerColor, false);
 						}
 					}
-					else if (Vars::Chams::ViewmodelGun && pEntity->GetClientClass()->m_ClassID == CTerrorViewModel)
+					else if (Vars::Chams::PlayerInfected)
 					{
-						applyChams(chamMat, Vars::Chams::ViewmodelGunColor, false);
+						// A player on the infected team (versus mode).
+						if (pEntity->As<C_TerrorPlayer*>()->IsAlive())
+						{
+							if (Vars::Chams::SIThroughWalls)
+							{
+								applyChams(Vars::Chams::SIMaterial, Vars::Chams::PlayerInfectedColor, true);
+								Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
+							}
+							applyChams(Vars::Chams::SIMaterial, Vars::Chams::PlayerInfectedColor, false);
+						}
+					}
+				}
+				else if (Vars::Chams::PlayerInfected && (pEntity->IsZombie() || pEntity->GetClientClass()->m_ClassID == Witch))
+				{
+					// Special Infected (Hunter, Smoker, Boomer, etc.) and the Witch.
+					if (Vars::Chams::SIThroughWalls)
+					{
+						applyChams(Vars::Chams::SIMaterial, Vars::Chams::PlayerInfectedColor, true);
+						Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
+					}
+					applyChams(Vars::Chams::SIMaterial, Vars::Chams::PlayerInfectedColor, false);
+				}
+				else if (Vars::Chams::Infected && pEntity->GetClientClass()->m_ClassID == Infected)
+				{
+					// Common Infected (the horde). Validate sequence/solid flags so we
+					// don't paint ragdolls/dying bodies.
+					C_Infected* pInfected = pEntity->As<C_Infected*>();
+					if (pInfected && pInfected->ValidEntity(pInfected->m_nSequence(), pInfected->m_usSolidFlags()))
+					{
+						if (Vars::Chams::CIThroughWalls)
+						{
+							applyChams(Vars::Chams::CIMaterial, Vars::Chams::InfectedColor, true);
+							Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
+						}
+						applyChams(Vars::Chams::CIMaterial, Vars::Chams::InfectedColor, false);
+					}
+				}
+				else if (Vars::Chams::ViewmodelGun && pEntity->GetClientClass()->m_ClassID == CTerrorViewModel)
+				{
+					applyChams(Vars::Chams::GunMaterial, Vars::Chams::ViewmodelGunColor, false);
+				}
+				else if (Vars::Grenade::ProjectileColorChanger)
+				{
+					// Recolor the in-flight throwable MODELS (the bottle / jar mesh).
+					// NOTE: the fire and bile SPLASH are particle systems, not models,
+					// so they cannot be recolored from this model hook — only the
+					// thrown object model is affected here.
+					const int cid = pEntity->GetClientClass()->m_ClassID;
+					if (cid == CVomitJarProjectile)
+					{
+						applyChams(0, Vars::Grenade::BileColor, false);
+					}
+					else if (cid == CMolotovProjectile)
+					{
+						applyChams(0, Vars::Grenade::MolotovColor, false);
 					}
 				}
 			}

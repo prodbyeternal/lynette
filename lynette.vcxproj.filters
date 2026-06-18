@@ -33,6 +33,7 @@
     <ClCompile Include="Features\NoSpread\NoSpread.cpp" />
     <ClCompile Include="Hooks\SequenceTransitioner\SequenceTransitioner.cpp" />
     <ClCompile Include="Hooks\ModelRender\ModelRender.cpp" />
+    <ClCompile Include="Hooks\ParticleColor\ParticleColor.cpp" />
     <ClCompile Include="Hooks\ModelRenderSystem\ModelRenderSystem.cpp" />
     <ClCompile Include="Hooks\TerrorGameRules\TerrorGameRules.cpp" />
     <ClCompile Include="Features\EnginePrediction\EnginePrediction.cpp" />
@@ -43,6 +44,8 @@
     <ClCompile Include="SDK\L4D2\Includes\bitbuf.cpp" />
     <ClCompile Include="Features\Sequence Freezing\SequenceFreezing.cpp" />
     <ClCompile Include="Features\AutoShove\AutoShove.cpp" />
+    <ClCompile Include="Features\Config\Config.cpp" />
+    <ClCompile Include="Features\CvarTools\CvarTools.cpp" />
     <ClCompile Include="SDK\L4D2\Interfaces\Cvars.cpp" />
     <ClCompile Include="Hooks\EndSceneHook\EndScene.cpp" />
     <ClCompile Include="Hooks\WndProc\WndProc.cpp" />
@@ -142,6 +145,7 @@
     <ClInclude Include="Features\NoSpread\NoSpread.h" />
     <ClInclude Include="Hooks\SequenceTransitioner\SequenceTransitioner.h" />
     <ClInclude Include="Hooks\ModelRender\ModelRender.h" />
+    <ClInclude Include="Hooks\ParticleColor\ParticleColor.h" />
     <ClInclude Include="Hooks\ModelRenderSystem\ModelRenderSystem.h" />
     <ClInclude Include="Hooks\TerrorGameRules\TerrorGameRules.h" />
     <ClInclude Include="Util\XorString\XorString.h" />
@@ -155,6 +159,8 @@
     <ClInclude Include="Features\Sequence Freezing\SequenceFreezing.h" />
     <ClInclude Include="SDK\L4D2\Interfaces\Models.h" />
     <ClInclude Include="Features\AutoShove\AutoShove.h" />
+    <ClInclude Include="Features\Config\Config.h" />
+    <ClInclude Include="Features\CvarTools\CvarTools.h" />
     <ClInclude Include="SDK\L4D2\Interfaces\IInput.h" />
     <ClInclude Include="SDK\L4D2\Includes\utlvector.h" />
     <ClInclude Include="SDK\L4D2\Interfaces\CvarsB.h" />
