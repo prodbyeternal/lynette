@@ -163,11 +163,13 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 				Vector fwd, right, up;
 				Math::AngleVectors(eyeAng, &fwd, &right, &up);
 
-				// Approximate L4D2 throw: release offset in front of the eye and an
-				// upward-biased toss velocity. These constants mirror the in-game
-				// CBaseCSGrenade throw setup closely enough for an aiming aid.
+				// Faithful L4D2 throw: CBaseCSGrenade releases the projectile from
+				// roughly eye height + a small forward offset, with a velocity of
+				// ~1100 u/s along the aim vector plus a +200 u/s upward bias, then
+				// the projectile is governed by sv_gravity. (These match the values
+				// used by the engine's ThrowGrenade for survivor throwables.)
 				Vector pos = pLocal->Weapon_ShootPosition() + fwd * 16.f;
-				const float throwSpeed = 1000.f;
+				const float throwSpeed = 1100.f;
 				Vector vel = fwd * throwSpeed + up * 200.f;
 
 				static ConVar* sv_gravity = I::Cvars->FindVar("sv_gravity");
@@ -228,35 +230,55 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 					Vector ls;
 					if (G::Util.W2S(landWorld, ls))
 						fg->AddCircle(ImVec2(ls.x, ls.y), 6.0f, lineCol, 16, 2.0f);
-
-					// Molotov range visual: draw a 3D ground circle at the landing
-					// point showing the approximate fire spread radius. Only for the
-					// molotov (the fire grenade).
-					if (Vars::Grenade::MolotovRangeVisual && wid == WEAPON_MOLOTOV)
-					{
-						const Color rc = Vars::Grenade::MolotovRangeColor;
-						ImU32 rcol = ImGui::GetColorU32(ImVec4(rc.r()/255.f, rc.g()/255.f, rc.b()/255.f, rc.a()/255.f));
-						const int segs = 48;
-						const float radius = Vars::Grenade::MolotovRangeRadius;
-						ImVec2 prevPt; bool havePt = false;
-						for (int i = 0; i <= segs; ++i)
-						{
-							float ang = (float)i / segs * 6.28318530718f;
-							Vector world = landWorld;
-							world.x += cosf(ang) * radius;
-							world.y += sinf(ang) * radius;
-							Vector sp;
-							if (G::Util.W2S(world, sp))
-							{
-								if (havePt)
-									fg->AddLine(prevPt, ImVec2(sp.x, sp.y), rcol, 2.0f);
-								prevPt = ImVec2(sp.x, sp.y);
-								havePt = true;
-							}
-							else havePt = false;
-						}
-					}
 				}
+			}
+		}
+	}
+
+	// Molotov fire range visual: draw a ground circle around every active inferno
+	// (the actual fire entity) for its entire lifetime, sized to the real fire
+	// spread distance from the inferno_max_range cvar. This keeps the ring on the
+	// fire until it burns out, rather than only while aiming.
+	if (Vars::Grenade::MolotovRangeVisual &&
+		I::EngineClient->IsInGame() && !I::EngineVGui->IsGameUIVisible())
+	{
+		static ConVar* inferno_max_range = I::Cvars->FindVar("inferno_max_range");
+		float radius = inferno_max_range ? inferno_max_range->GetFloat() : 172.f;
+		if (radius <= 0.f) radius = 172.f;
+
+		ImDrawList* fg = ImGui::GetForegroundDrawList();
+		const Color rc = Vars::Grenade::MolotovRangeColor;
+		ImU32 rcol = ImGui::GetColorU32(ImVec4(rc.r()/255.f, rc.g()/255.f, rc.b()/255.f, rc.a()/255.f));
+
+		const int maxEnt = I::ClientEntityList->GetMaxEntities();
+		for (int n = 1; n <= maxEnt; ++n)
+		{
+			IClientEntity* pEnt2 = I::ClientEntityList->GetClientEntity(n);
+			if (!pEnt2 || pEnt2->IsDormant())
+				continue;
+			ClientClass* cc = pEnt2->GetClientClass();
+			if (!cc || cc->m_ClassID != CInferno)
+				continue;
+
+			Vector origin = pEnt2->As<C_BaseEntity*>()->m_vecOrigin();
+
+			const int segs = 48;
+			ImVec2 prevPt; bool havePt = false;
+			for (int i = 0; i <= segs; ++i)
+			{
+				float ang = (float)i / segs * 6.28318530718f;
+				Vector world = origin;
+				world.x += cosf(ang) * radius;
+				world.y += sinf(ang) * radius;
+				Vector sp;
+				if (G::Util.W2S(world, sp))
+				{
+					if (havePt)
+						fg->AddLine(prevPt, ImVec2(sp.x, sp.y), rcol, 2.0f);
+					prevPt = ImVec2(sp.x, sp.y);
+					havePt = true;
+				}
+				else havePt = false;
 			}
 		}
 	}

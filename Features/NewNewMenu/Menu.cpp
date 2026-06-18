@@ -494,17 +494,16 @@ void Menu::Render(IDirect3DDevice9* pDevice) {
 							ImGui::Checkbox("Blood Color (particle)", &Vars::Grenade::BloodColorChanger);
 							ImGui::PopStyleColor(2);
 
-							ImGui::PushStyleColor(ImGuiCol_SliderGrab, main_color);
-							ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, main_color);
-							ImGui::SliderFloat("Molotov Range", &Vars::Grenade::MolotovRangeRadius, 50.f, 400.f, "%.0f");
-							ImGui::PopStyleColor(2);
+							// Note: molotov fire range radius is read live from the
+							// inferno_max_range cvar to stay faithful to the game.
 
-							float trajCol[4], bileCol[4], moloCol[4], rangeCol[4], bloodCol[4];
+							float trajCol[4], bileCol[4], moloCol[4], rangeCol[4], bloodCol[4], spitCol[4];
 							ColorToFloat4(Vars::Grenade::TrajectoryColor, trajCol);
 							ColorToFloat4(Vars::Grenade::BileColor, bileCol);
 							ColorToFloat4(Vars::Grenade::MolotovColor, moloCol);
 							ColorToFloat4(Vars::Grenade::MolotovRangeColor, rangeCol);
 							ColorToFloat4(Vars::Grenade::BloodColor, bloodCol);
+							ColorToFloat4(Vars::Grenade::SpitterColor, spitCol);
 							if (ImGui::ColorEdit4("Trajectory Color", trajCol, ImGuiColorEditFlags_NoInputs))
 								Vars::Grenade::TrajectoryColor = Float4ToColor(trajCol);
 							if (ImGui::ColorEdit4("Range Color", rangeCol, ImGuiColorEditFlags_NoInputs))
@@ -513,6 +512,8 @@ void Menu::Render(IDirect3DDevice9* pDevice) {
 								Vars::Grenade::BileColor = Float4ToColor(bileCol);
 							if (ImGui::ColorEdit4("Molotov Color", moloCol, ImGuiColorEditFlags_NoInputs))
 								Vars::Grenade::MolotovColor = Float4ToColor(moloCol);
+							if (ImGui::ColorEdit4("Spitter Goo Color", spitCol, ImGuiColorEditFlags_NoInputs))
+								Vars::Grenade::SpitterColor = Float4ToColor(spitCol);
 							if (ImGui::ColorEdit4("Blood Color", bloodCol, ImGuiColorEditFlags_NoInputs))
 								Vars::Grenade::BloodColor = Float4ToColor(bloodCol);
 						}

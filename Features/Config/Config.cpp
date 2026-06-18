@@ -123,6 +123,7 @@ namespace {
 		addB("nade.projcolor",      &Vars::Grenade::ProjectileColorChanger);
 		addC("nade.bilecolor",      &Vars::Grenade::BileColor);
 		addC("nade.molocolor",      &Vars::Grenade::MolotovColor);
+		addC("nade.spittercolor",   &Vars::Grenade::SpitterColor);
 		addB("nade.molorange",      &Vars::Grenade::MolotovRangeVisual);
 		addF("nade.molorangerad",   &Vars::Grenade::MolotovRangeRadius);
 		addC("nade.molorangecol",   &Vars::Grenade::MolotovRangeColor);

@@ -112,6 +112,7 @@ namespace Vars
 		inline bool ProjectileColorChanger = false;
 		inline Color BileColor = { 0, 255, 0, 255 };
 		inline Color MolotovColor = { 255, 100, 0, 255 };
+		inline Color SpitterColor = { 180, 255, 0, 255 };
 
 		// Molotov fire range visual (ground circle at predicted landing)
 		inline bool MolotovRangeVisual = false;

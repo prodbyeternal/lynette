@@ -88,6 +88,16 @@ static bool ResolveTargetColor(const char* name, float& r, float& g, float& b)
 		return true;
 	}
 
+	// Spitter acid goo / spit pool.
+	if (Vars::Grenade::ProjectileColorChanger &&
+		(contains("spitter") || contains("spit") || contains("acid")))
+	{
+		r = Vars::Grenade::SpitterColor.r() / 255.f;
+		g = Vars::Grenade::SpitterColor.g() / 255.f;
+		b = Vars::Grenade::SpitterColor.b() / 255.f;
+		return true;
+	}
+
 	if (Vars::Grenade::BloodColorChanger && contains("blood"))
 	{
 		r = Vars::Grenade::BloodColor.r() / 255.f;
