@@ -46,6 +46,71 @@ void CFeatures_ESP::Render()
 {
 	if (!I::EngineClient->IsInGame() || I::EngineVGui->IsGameUIVisible())
 		return;
+	// Glow ESP updates
+	for (int n = 1; n < (I::ClientEntityList->GetMaxEntities() + 1); n++)
+	{
+		IClientEntity* pEntity = I::ClientEntityList->GetClientEntity(n);
+		if (!pEntity || pEntity->IsDormant())
+			continue;
+
+		C_BaseEntity* pBase = pEntity->As<C_BaseEntity*>();
+		if (!pBase || !pBase->GetClientClass())
+			continue;
+
+		bool shouldGlow = false;
+		Color glowColor = { 255, 255, 255, 255 };
+
+		int classId = pBase->GetClientClass()->m_ClassID;
+		if (classId == CTerrorPlayer || classId == SurvivorBot)
+		{
+			C_TerrorPlayer* pPlayer = pEntity->As<C_TerrorPlayer*>();
+			if (pPlayer && !pPlayer->deadflag())
+			{
+				bool bIsSurvivor = (pPlayer->GetTeamNumber() == TEAM_SURVIVOR);
+				if (bIsSurvivor && Vars::ESP::GlowSurvivors)
+				{
+					shouldGlow = true;
+					glowColor = Vars::ESP::PlayerColor;
+				}
+				else if (!bIsSurvivor && Vars::ESP::GlowSI)
+				{
+					shouldGlow = true;
+					glowColor = Vars::ESP::PlayerInfectedColor;
+				}
+			}
+		}
+		else if (classId == Infected)
+		{
+			if (Vars::ESP::GlowCI)
+			{
+				shouldGlow = true;
+				glowColor = Vars::ESP::InfectedColor;
+			}
+		}
+		else if (classId == Witch)
+		{
+			if (Vars::ESP::GlowWitch)
+			{
+				shouldGlow = true;
+				glowColor = { 255, 0, 0, 255 }; // Default Red for Witch
+			}
+		}
+
+		// Apply or remove Glow via Netprops
+		if (shouldGlow)
+		{
+			// Convert Color to integer (0xAABBGGRR / 0xRRGGBB depending on L4D2 engine read)
+			int rgb = (glowColor.r()) | (glowColor.g() << 8) | (glowColor.b() << 16);
+			pBase->m_iGlowType() = 3; // Glow Type 3: Glow outline
+			pBase->m_nGlowRange() = 99999;
+			pBase->m_glowColorOverride() = rgb;
+		}
+		else
+		{
+			pBase->m_iGlowType() = 0; // Disable
+		}
+	}
+
 	if (!Vars::ESP::Enabled)
 		return;
 	const int nLocalIndex = I::EngineClient->GetLocalPlayer();

@@ -27,7 +27,7 @@ void __fastcall BasePlayer::CalcViewModelView::Detour(void* ecx, void* edx, int 
 		if (!Vars::ESP::ViewModelChanger) // return if not enabled bla bla bla
 			return 	Func.Original<FN>()(ecx, edx, a2, std::ref(eyePosition), std::ref(eyeAngles));
 
-			Vector Forward = {}, Right = {}, Up = {};
+		Vector Forward = {}, Right = {}, Up = {};
 		U::Math.angleVectors(eyeAngles, &Forward, &Right, &Up);
 
 		Vector ViewModelPos = eyePosition + (
@@ -36,7 +36,10 @@ void __fastcall BasePlayer::CalcViewModelView::Detour(void* ecx, void* edx, int 
 			(Up * Vars::ESP::viewmodel_z/*z*/)
 			);
 
-		Func.Original<FN>()(ecx, edx, a2, std::ref(ViewModelPos), std::ref(eyeAngles));
+		Vector ModifiedAngles = eyeAngles;
+		ModifiedAngles.z += Vars::ESP::viewmodel_roll;
+
+		Func.Original<FN>()(ecx, edx, a2, std::ref(ViewModelPos), std::ref(ModifiedAngles));
 	}
 	else
 	{

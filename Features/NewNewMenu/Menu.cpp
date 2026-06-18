@@ -294,6 +294,12 @@ void Menu::Render(IDirect3DDevice9* pDevice) {
 							ImGui::Checkbox("Ammunition Glow", &Vars::ESP::Ammo);
 							ImGui::Checkbox("Local ESP", &Vars::ESP::LocalESP);
 
+							ImGui::Separator();
+							ImGui::Checkbox("Glow Survivors", &Vars::ESP::GlowSurvivors);
+							ImGui::Checkbox("Glow Special Infected", &Vars::ESP::GlowSI);
+							ImGui::Checkbox("Glow Common Infected", &Vars::ESP::GlowCI);
+							ImGui::Checkbox("Glow Witch", &Vars::ESP::GlowWitch);
+
 							ImGui::PopStyleColor(2);
 						}
 						ImGui::EndChild();
@@ -317,6 +323,19 @@ void Menu::Render(IDirect3DDevice9* pDevice) {
 							if (ImGui::ColorEdit4("Common Infected", colCI, ImGuiColorEditFlags_NoInputs)) {
 								Vars::ESP::InfectedColor = Float4ToColor(colCI);
 							}
+
+							ImGui::Separator();
+							ImGui::PushStyleColor(ImGuiCol_CheckMark, main_color);
+							ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+							ImGui::Checkbox("Velocity HUD", &Vars::ESP::VelocityHUD);
+							ImGui::Checkbox("Velocity Graph", &Vars::ESP::VelocityGraph);
+							ImGui::PopStyleColor(2);
+
+							ImGui::PushStyleColor(ImGuiCol_SliderGrab, main_color);
+							ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, main_color);
+							ImGui::SliderFloat("Speedo X", &Vars::ESP::VelocityX, 0.0f, 1.0f, "%.2f");
+							ImGui::SliderFloat("Speedo Y", &Vars::ESP::VelocityY, 0.0f, 1.0f, "%.2f");
+							ImGui::PopStyleColor(2);
 						}
 						ImGui::EndChild();
 					}
@@ -337,13 +356,32 @@ void Menu::Render(IDirect3DDevice9* pDevice) {
 							ImGui::PopStyleColor(2);
 
 							const char* chamsMaterials[] = { "Solid Material", "Flat Shaded", "Wireframe" };
-							ImGui::Combo("Weapon Material", &Vars::Chams::ViewmodelMaterial, chamsMaterials, IM_ARRAYSIZE(chamsMaterials));
+							ImGui::Combo("Chams Material", &Vars::Chams::ViewmodelMaterial, chamsMaterials, IM_ARRAYSIZE(chamsMaterials));
+
+							ImGui::PushStyleColor(ImGuiCol_CheckMark, main_color);
+							ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+							ImGui::Checkbox("Chams Through Walls", &Vars::Chams::ThroughWalls);
+							ImGui::PopStyleColor(2);
 
 							float wCol[4];
 							ColorToFloat4(Vars::Chams::ViewmodelGunColor, wCol);
 							if (ImGui::ColorEdit4("Weapon Color", wCol, ImGuiColorEditFlags_NoInputs)) {
 								Vars::Chams::ViewmodelGunColor = Float4ToColor(wCol);
 							}
+
+							ImGui::Separator();
+							ImGui::PushStyleColor(ImGuiCol_CheckMark, main_color);
+							ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+							ImGui::Checkbox("Viewmodel Changer", &Vars::ESP::ViewModelChanger);
+							ImGui::PopStyleColor(2);
+
+							ImGui::PushStyleColor(ImGuiCol_SliderGrab, main_color);
+							ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, main_color);
+							ImGui::SliderFloat("Viewmodel X", &Vars::ESP::viewmodel_x, -10.f, 10.f, "%.1f");
+							ImGui::SliderFloat("Viewmodel Y", &Vars::ESP::viewmodel_y, -10.f, 10.f, "%.1f");
+							ImGui::SliderFloat("Viewmodel Z", &Vars::ESP::viewmodel_z, -10.f, 10.f, "%.1f");
+							ImGui::SliderFloat("Viewmodel Roll", &Vars::ESP::viewmodel_roll, -180.f, 180.f, "%.1f");
+							ImGui::PopStyleColor(2);
 						}
 						ImGui::EndChild();
 

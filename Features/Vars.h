@@ -120,6 +120,7 @@ namespace Vars
 		inline float viewmodel_x = 1.0f;
 		inline float viewmodel_y = 1.0f;
 		inline float viewmodel_z = 0.0f;
+		inline float viewmodel_roll = 0.0f;
 
 		inline bool m_bFovChanger = false;
 		inline float m_fViewFov = 50.0f;
@@ -128,6 +129,18 @@ namespace Vars
 		inline Color PlayerColor = { 0, 255, 0, 255 };
 		inline Color PlayerInfectedColor = { 255, 255, 0, 255 };
 		inline Color InfectedColor = { 0, 255, 255, 255 };
+
+		// Glow ESP variables
+		inline bool GlowSurvivors = false;
+		inline bool GlowSI = false;
+		inline bool GlowCI = false;
+		inline bool GlowWitch = false;
+
+		// Velocity Speedometer & Graph Variables
+		inline bool VelocityHUD = false;
+		inline bool VelocityGraph = false;
+		inline float VelocityX = 0.5f;
+		inline float VelocityY = 0.85f;
 	}
 	namespace Chams
 	{
@@ -136,7 +149,8 @@ namespace Vars
 		inline bool Infected = false;
 		inline bool ViewmodelGun = false;
 		inline Color ViewmodelGunColor = { 240, 137, 229, 255 };
-		inline int  ViewmodelMaterial = 0; // 0 - Material 1 - Flat 2 - WireFrame
+		inline int  ViewmodelMaterial = 0; // 0 - Solid, 1 - Flat, 2 - Wireframe
+		inline bool ThroughWalls = false;
 
 		inline Color PlayerColor = { 0, 255, 0, 255 };
 		inline Color PlayerInfectedColor = { 255, 255, 0, 255 };

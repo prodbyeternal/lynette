@@ -73,14 +73,31 @@ void __fastcall ModelRender::DrawModelExecute::Detour(void* ecx, void* edx, cons
 	if (!I::EngineClient->IsInGame())
 		Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
 
-	static IMaterial* material = I::MaterialSystem->FindMaterial("debug/debugambientcube", "Model textures");
-	static IMaterial* wireframe = I::MaterialSystem->FindMaterial("___wireframe_dx9_5", "Model textures");
-	static IMaterial* MetalMat = I::MaterialSystem->FindMaterial("//platform/materials/debug/env_cubemap_model", "Model textures");
-	static IMaterial* vomitboomer = I::MaterialSystem->FindMaterial(("particle/screenspaceboomervomit"), "Particle textures");
+	static IMaterial* materialAmbient = I::MaterialSystem->FindMaterial("debug/debugambientcube", "Model textures");
+	static IMaterial* materialFlat = I::MaterialSystem->FindMaterial("debug/debugdrawflat", "Model textures");
+	static IMaterial* materialWire = I::MaterialSystem->FindMaterial("___wireframe_dx9_5", "Model textures");
+	static IMaterial* vomitboomer = I::MaterialSystem->FindMaterial("particle/screenspaceboomervomit", "Particle textures");
 
-	if (pInfo.pModel && pInfo.entity_index && material)
+	auto applyChams = [&](IMaterial* mat, const Color& col, bool ignoreZ) {
+		mat->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, ignoreZ);
+		mat->SetMaterialVarFlag(MATERIAL_VAR_ZNEARER, true);
+		mat->SetMaterialVarFlag(MATERIAL_VAR_NOCULL, true);
+		mat->SetMaterialVarFlag(MATERIAL_VAR_NOFOG, true);
+		mat->SetMaterialVarFlag(MATERIAL_VAR_HALFLAMBERT, true);
+		mat->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, (Vars::Chams::ViewmodelMaterial == 2));
+		mat->ColorModulate(col.r() / 255.f, col.g() / 255.f, col.b() / 255.f);
+		mat->AlphaModulate(col.a() / 255.f);
+		I::ModelRender->ForcedMaterialOverride(mat);
+	};
+
+	auto getActiveMat = []() -> IMaterial* {
+		if (Vars::Chams::ViewmodelMaterial == 1) return materialFlat;
+		if (Vars::Chams::ViewmodelMaterial == 2) return materialWire;
+		return materialAmbient;
+	};
+
+	if (pInfo.pModel && pInfo.entity_index)
 	{
-
 		if (Vars::SkyBox::Enable)
 		{
 			static ConVar* skyName = I::Cvars->FindVar("sv_skyname");
@@ -127,61 +144,60 @@ void __fastcall ModelRender::DrawModelExecute::Detour(void* ecx, void* edx, cons
 		{
 			vomitboomer->SetMaterialVarFlag(MATERIAL_VAR_NO_DRAW, Vars::Removals::BoomerVisual);
 		}
+
 		C_BaseEntity* pEntity = I::ClientEntityList->GetClientEntity(pInfo.entity_index)->As<C_BaseEntity*>();
 		if (pEntity && !pEntity->IsDormant())
 		{
 			if (pEntity->GetClientClass())
 			{
-				if (Vars::Chams::Players)
+				IMaterial* chamMat = getActiveMat();
+				if (chamMat)
 				{
-					if (pEntity->GetClientClass()->m_ClassID == SurvivorBot
-						|| pEntity->GetClientClass()->m_ClassID == CTerrorPlayer)
+					if (Vars::Chams::Players && (pEntity->GetClientClass()->m_ClassID == SurvivorBot || pEntity->GetClientClass()->m_ClassID == CTerrorPlayer))
 					{
 						const bool bIsSurvivor = (pEntity->As<C_TerrorPlayer*>()->GetTeamNumber() == TEAM_SURVIVOR);
-						// if it is survivor       if not 
 						const Color clrTeam = bIsSurvivor ? Vars::Chams::PlayerColor : Vars::Chams::PlayerInfectedColor;
 
 						if (bIsSurvivor)
 						{
 							if (pEntity->As<C_TerrorPlayer*>()->IsAlive())
 							{
-								OverridematerialXQZ(material, clrTeam.r(), clrTeam.g(), clrTeam.b(), clrTeam.a());
-								Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
-							}
-							Overridematerial(material, clrTeam.r(), clrTeam.g(), clrTeam.b(), clrTeam.a());
-						}
-						else
-						{
-							if (Vars::Chams::PlayerInfected)
-							{
-								if (pEntity->As<C_TerrorPlayer*>()->IsAlive())
+								if (Vars::Chams::ThroughWalls)
 								{
-									OverridematerialXQZ(material, clrTeam.r(), clrTeam.g(), clrTeam.b(), clrTeam.a());
+									applyChams(chamMat, clrTeam, true);
 									Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
 								}
-								Overridematerial(material, clrTeam.r(), clrTeam.g(), clrTeam.b(), clrTeam.a());
+								applyChams(chamMat, clrTeam, false);
+							}
+						}
+						else if (Vars::Chams::PlayerInfected)
+						{
+							if (pEntity->As<C_TerrorPlayer*>()->IsAlive())
+							{
+								if (Vars::Chams::ThroughWalls)
+								{
+									applyChams(chamMat, clrTeam, true);
+									Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
+								}
+								applyChams(chamMat, clrTeam, false);
 							}
 						}
 					}
-				}
-				if (Vars::Chams::PlayerInfected)
-				{
-					if (pEntity->IsZombie() || pEntity->m_usSolidFlags() == 4 || pEntity->GetClientClass()->m_ClassID == Witch)
+					else if (Vars::Chams::PlayerInfected && (pEntity->IsZombie() || pEntity->m_usSolidFlags() == 4 || pEntity->GetClientClass()->m_ClassID == Witch))
 					{
 						if (pEntity->ValidEntity(pEntity->As<C_Infected*>()->m_nSequence(), pEntity->As<C_Infected*>()->m_usSolidFlags()))
 						{
-							OverridematerialXQZ(material, Vars::Chams::PlayerInfectedColor.r(), Vars::Chams::PlayerInfectedColor.g(), Vars::Chams::PlayerInfectedColor.b(), Vars::Chams::PlayerInfectedColor.a());
-							Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
+							if (Vars::Chams::ThroughWalls)
+							{
+								applyChams(chamMat, Vars::Chams::PlayerInfectedColor, true);
+								Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
+							}
+							applyChams(chamMat, Vars::Chams::PlayerInfectedColor, false);
 						}
-						Overridematerial(material, Vars::Chams::PlayerInfectedColor.r(), Vars::Chams::PlayerInfectedColor.g(), Vars::Chams::PlayerInfectedColor.b(), Vars::Chams::PlayerInfectedColor.a());
 					}
-				}
-				if (Vars::Chams::ViewmodelGun)
-				{
-					if (pEntity->GetClientClass()->m_ClassID == CTerrorViewModel)
+					else if (Vars::Chams::ViewmodelGun && pEntity->GetClientClass()->m_ClassID == CTerrorViewModel)
 					{
-						const Color clrTeam = Vars::Chams::ViewmodelGunColor;
-						Overridematerial(material, clrTeam.r(), clrTeam.g(), clrTeam.b(), clrTeam.a());
+						applyChams(chamMat, Vars::Chams::ViewmodelGunColor, false);
 					}
 				}
 			}
