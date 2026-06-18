@@ -7,6 +7,10 @@
 #include <algorithm>
 #include "../../Features/Vars.h"
 
+// Define helper operator overloads for ImVec2 math
+inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
+inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
+
 static std::deque<float> velocityHistory;
 HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 {
@@ -41,17 +45,17 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 			float h = 100.f;
 
 			// Draw Background container if configured (matching premium design with subtle pink shadow)
-			drawList->AddRectFilled(pos + ImVec2(2.f, 2.f), pos + ImVec2(w + 2.f, h + 2.f), ImColor(0, 0, 0, 45), 8.f);
-			drawList->AddRectFilled(pos, pos + ImVec2(w, h), ImColor(10, 10, 12, 215), 8.f);
-			drawList->AddRect(pos, pos + ImVec2(w, h), ImColor(255, 255, 255, 12), 8.f, 0, 1.f);
+			drawList->AddRectFilled(pos + ImVec2(2.f, 2.f), pos + ImVec2(w + 2.f, h + 2.f), ImGui::GetColorU32(ImGuiCol_WindowBg, 0.17f), 8.f);
+			drawList->AddRectFilled(pos, pos + ImVec2(w, h), ImGui::GetColorU32(ImGuiCol_WindowBg, 0.84f), 8.f);
+			drawList->AddRect(pos, pos + ImVec2(w, h), ImGui::GetColorU32(ImGuiCol_Border, 0.05f), 8.f, 0, 1.f);
 
 			// Render Speed Text (Pink Accent)
 			char speedStr[32];
 			sprintf(speedStr, "%d", static_cast<int>(std::round(currentSpeed)));
 			ImVec2 textSz = ImGui::GetFont()->CalcTextSizeA(26.f, FLT_MAX, 0.f, speedStr);
 			
-			drawList->AddText(ImGui::GetFont(), 26.f, pos + ImVec2((w - textSz.x) * 0.5f, 10.f), ImColor(210, 100, 185, 255), speedStr);
-			drawList->AddText(ImGui::GetFont(), 10.f, pos + ImVec2((w - textSz.x) * 0.5f + textSz.x + 3.f, 22.f), ImColor(160, 160, 160, 255), "UPS");
+			drawList->AddText(ImGui::GetFont(), 26.f, pos + ImVec2((w - textSz.x) * 0.5f, 10.f), ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 1.f)), speedStr);
+			drawList->AddText(ImGui::GetFont(), 10.f, pos + ImVec2((w - textSz.x) * 0.5f + textSz.x + 3.f, 22.f), ImGui::GetColorU32(ImVec4(160.f/255.f, 160.f/255.f, 160.f/255.f, 1.f)), "UPS");
 
 			// Draw Line Graph
 			if (Vars::ESP::VelocityGraph && velocityHistory.size() > 2)
@@ -79,8 +83,10 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 					drawList->AddRectFilledMultiColor(
 						ImVec2(p1.x, (p1.y + p2.y) * 0.5f),
 						ImVec2(p2.x, gOrigin.y),
-						ImColor(210, 100, 185, 30), ImColor(210, 100, 185, 30),
-						ImColor(210, 100, 185, 0), ImColor(210, 100, 185, 0)
+						ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 0.12f)),
+						ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 0.12f)),
+						ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 0.f)),
+						ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 0.f))
 					);
 				}
 
@@ -94,8 +100,8 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 					ImVec2 p1 = gOrigin + ImVec2(x1, -v1);
 					ImVec2 p2 = gOrigin + ImVec2(x2, -v2);
 
-					drawList->AddLine(p1, p2, ImColor(210, 100, 185, 40), 3.f);
-					drawList->AddLine(p1, p2, ImColor(210, 100, 185, 255), 1.2f);
+					drawList->AddLine(p1, p2, ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 0.15f)), 3.f);
+					drawList->AddLine(p1, p2, ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 1.f)), 1.2f);
 				}
 			}
 
@@ -103,11 +109,12 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 			ImVec2 indicatorPos = pos + ImVec2(0.f, h + 8.f);
 			
 			auto drawIndicator = [&](const char* label, bool active, float xOffset) {
-				ImColor col = active ? ImColor(210, 100, 185, 255) : ImColor(80, 80, 85, 255);
+				ImVec4 colVec = active ? ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 1.f) : ImVec4(80.f/255.f, 80.f/255.f, 85.f/255.f, 1.f);
+				ImU32 col = ImGui::GetColorU32(colVec);
 				ImVec2 lblSz = ImGui::GetFont()->CalcTextSizeA(12.f, FLT_MAX, 0.f, label);
 				
 				// Draw rounded border badge
-				drawList->AddRectFilled(indicatorPos + ImVec2(xOffset, 0.f), indicatorPos + ImVec2(xOffset + 48.f, 20.f), ImColor(15, 15, 17, 240), 4.f);
+				drawList->AddRectFilled(indicatorPos + ImVec2(xOffset, 0.f), indicatorPos + ImVec2(xOffset + 48.f, 20.f), ImGui::GetColorU32(ImVec4(15.f/255.f, 15.f/255.f, 17.f/255.f, 0.94f)), 4.f);
 				drawList->AddRect(indicatorPos + ImVec2(xOffset, 0.f), indicatorPos + ImVec2(xOffset + 48.f, 20.f), col, 4.f, 0, 1.f);
 				
 				// Draw Text
