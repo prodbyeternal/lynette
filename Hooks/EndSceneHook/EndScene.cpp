@@ -16,6 +16,28 @@
 // EdgeBug prediction path positions (populated in EdgeBug.cpp during scanning).
 extern std::vector<Vector> ebpos;
 
+// Validated world-to-screen: returns true only if the point projects to a sane
+// on/near-screen coordinate. DebugOverlay::ScreenPosition can report "success"
+// for points behind the camera, producing wildly out-of-range coords; connecting
+// those with AddLine draws a line straight across the whole screen (the artifact
+// seen with the molotov ring / trajectory). We reject anything far outside the
+// display bounds to prevent that.
+static bool SafeW2S(const Vector& world, ImVec2& out)
+{
+	Vector s;
+	if (!G::Util.W2S(world, s))
+		return false;
+
+	ImGuiIO& io = ImGui::GetIO();
+	const float margin = 2000.f; // allow some off-screen slack for line continuity
+	if (s.x < -margin || s.x > io.DisplaySize.x + margin ||
+		s.y < -margin || s.y > io.DisplaySize.y + margin)
+		return false;
+
+	out = ImVec2(s.x, s.y);
+	return true;
+}
+
 // Define helper operator overloads for ImVec2 math
 inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
 inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
@@ -196,11 +218,11 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 
 					Vector segEnd = (tr.fraction < 1.f) ? tr.endpos : next;
 
-					Vector s0, s1;
-					bool v0 = G::Util.W2S(pos, s0);
-					bool v1 = G::Util.W2S(segEnd, s1);
+					ImVec2 s0, s1;
+					bool v0 = SafeW2S(pos, s0);
+					bool v1 = SafeW2S(segEnd, s1);
 					if (v0 && v1)
-						fg->AddLine(ImVec2(s0.x, s0.y), ImVec2(s1.x, s1.y), lineCol, 2.0f);
+						fg->AddLine(s0, s1, lineCol, 2.0f);
 
 					if (tr.fraction < 1.f)
 					{
@@ -227,9 +249,9 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 
 				if (haveLand)
 				{
-					Vector ls;
-					if (G::Util.W2S(landWorld, ls))
-						fg->AddCircle(ImVec2(ls.x, ls.y), 6.0f, lineCol, 16, 2.0f);
+					ImVec2 ls;
+					if (SafeW2S(landWorld, ls))
+						fg->AddCircle(ls, 6.0f, lineCol, 16, 2.0f);
 				}
 			}
 		}
@@ -270,12 +292,12 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 				Vector world = origin;
 				world.x += cosf(ang) * radius;
 				world.y += sinf(ang) * radius;
-				Vector sp;
-				if (G::Util.W2S(world, sp))
+				ImVec2 sp;
+				if (SafeW2S(world, sp))
 				{
 					if (havePt)
-						fg->AddLine(prevPt, ImVec2(sp.x, sp.y), rcol, 2.0f);
-					prevPt = ImVec2(sp.x, sp.y);
+						fg->AddLine(prevPt, sp, rcol, 2.0f);
+					prevPt = sp;
 					havePt = true;
 				}
 				else havePt = false;
@@ -299,23 +321,23 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 			ImU32 pathCol = ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 0.9f));
 			ImU32 nodeCol = ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 0.9f));
 
-			Vector prevScreen;
+			ImVec2 prevScreen;
 			bool havePrev = false;
 			for (size_t i = 0; i < path.size(); ++i)
 			{
-				Vector screen;
-				if (!G::Util.W2S(path[i], screen))
+				ImVec2 screen;
+				if (!SafeW2S(path[i], screen))
 				{
 					havePrev = false;
 					continue;
 				}
 
 				// Node marker at each predicted tick position.
-				fg->AddCircleFilled(ImVec2(screen.x, screen.y), 2.5f, nodeCol);
+				fg->AddCircleFilled(screen, 2.5f, nodeCol);
 
 				// Connect consecutive on-screen nodes with a line.
 				if (havePrev)
-					fg->AddLine(ImVec2(prevScreen.x, prevScreen.y), ImVec2(screen.x, screen.y), pathCol, 2.0f);
+					fg->AddLine(prevScreen, screen, pathCol, 2.0f);
 
 				prevScreen = screen;
 				havePrev = true;
@@ -324,11 +346,11 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 			// Highlight the final/landing node when an edgebug was actually detected.
 			if (Movement::Should_EB && !path.empty())
 			{
-				Vector landing;
-				if (G::Util.W2S(path.back(), landing))
+				ImVec2 landing;
+				if (SafeW2S(path.back(), landing))
 				{
 					ImU32 hot = ImGui::GetColorU32(ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 1.f));
-					fg->AddCircle(ImVec2(landing.x, landing.y), 6.0f, hot, 16, 2.0f);
+					fg->AddCircle(landing, 6.0f, hot, 16, 2.0f);
 				}
 			}
 		}
