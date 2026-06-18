@@ -242,6 +242,25 @@ void __fastcall ModelRender::DrawModelExecute::Detour(void* ecx, void* edx, cons
 
 	Table.Original<FN>(Index)(ecx, edx, state, pInfo, pCustomBoneToWorld);
 	I::ModelRender->ForcedMaterialOverride(nullptr);
+
+	// IMPORTANT: debug/debugambientcube (and the other base materials) are SHARED
+	// engine materials — the game uses debugambientcube for world ambient lighting
+	// on foliage/sky props. If we leave our ColorModulate on them, that tint bleeds
+	// into the world (magenta foliage / teal sky). Restore them to neutral after
+	// every draw so the engine's own usage is unaffected.
+	auto resetMat = [](IMaterial* mat) {
+		if (mat && !mat->IsErrorMaterial())
+		{
+			mat->ColorModulate(1.f, 1.f, 1.f);
+			mat->AlphaModulate(1.f);
+			mat->SetMaterialVarFlag(MATERIAL_VAR_IGNOREZ, false);
+			mat->SetMaterialVarFlag(MATERIAL_VAR_WIREFRAME, false);
+			mat->SetMaterialVarFlag(MATERIAL_VAR_FLAT, false);
+		}
+	};
+	resetMat(materialAmbient);
+	resetMat(materialGlow);
+	resetMat(materialShaded);
 }
 
 void ModelRender::Init()
