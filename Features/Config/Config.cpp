@@ -72,6 +72,7 @@ namespace {
 		addB("esp.velgraph",        &Vars::ESP::VelocityGraph);
 		addF("esp.velx",            &Vars::ESP::VelocityX);
 		addF("esp.vely",            &Vars::ESP::VelocityY);
+		addB("esp.watermark",       &Vars::ESP::Watermark);
 
 		// Viewmodel / FOV / Aspect
 		addB("esp.vmchanger",       &Vars::ESP::ViewModelChanger);

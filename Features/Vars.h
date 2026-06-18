@@ -184,6 +184,9 @@ namespace Vars
 		inline bool VelocityGraph = false;
 		inline float VelocityX = 0.5f;
 		inline float VelocityY = 0.85f;
+
+		// Top-right watermark ("lynette | XXX fps")
+		inline bool Watermark = false;
 	}
 	namespace Chams
 	{

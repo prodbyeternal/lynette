@@ -116,6 +116,59 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 	// Render the cheat menu if open
 	g_Menu.Render(pDevice);
 
+	// Top-right watermark: "[pink] lynette [white] | XXX fps", styled to match
+	// the menu (dark rounded panel, signature pink accent, thin border).
+	if (Vars::ESP::Watermark && !I::EngineVGui->IsGameUIVisible())
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		ImDrawList* fg = ImGui::GetForegroundDrawList();
+		ImFont* font = verdanaFont ? verdanaFont : ImGui::GetFont();
+		const float fontSz = 14.f;
+
+		// Smoothed FPS counter so the number doesn't jitter every frame.
+		static float fpsSmoothed = 0.f;
+		float dt = io.DeltaTime > 0.f ? io.DeltaTime : (1.f / 60.f);
+		float instFps = 1.f / dt;
+		fpsSmoothed += (instFps - fpsSmoothed) * 0.1f;
+		int fps = (int)(fpsSmoothed + 0.5f);
+
+		// Build the two colored segments.
+		const char* name = "lynette";
+		char tail[32];
+		sprintf(tail, " | %d fps", fps);
+
+		const ImVec4 pinkVec  = ImVec4(210.f/255.f, 100.f/255.f, 185.f/255.f, 1.f);
+		const ImU32  pink     = ImGui::GetColorU32(pinkVec);
+		const ImU32  white    = ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f));
+		const ImU32  shadow   = ImGui::GetColorU32(ImVec4(0.f, 0.f, 0.f, 0.55f));
+
+		ImVec2 nameSz = font->CalcTextSizeA(fontSz, FLT_MAX, 0.f, name);
+		ImVec2 tailSz = font->CalcTextSizeA(fontSz, FLT_MAX, 0.f, tail);
+		float textW = nameSz.x + tailSz.x;
+
+		// Panel geometry, anchored to the top-right corner.
+		const float padX = 10.f, padY = 6.f;
+		float panelW = textW + padX * 2.f;
+		float panelH = fontSz + padY * 2.f;
+		float right  = io.DisplaySize.x - 12.f;
+		float top    = 12.f;
+		ImVec2 pMin = ImVec2(right - panelW, top);
+		ImVec2 pMax = ImVec2(right, top + panelH);
+
+		// Background + border (same palette as the menu window).
+		fg->AddRectFilled(pMin, pMax, ImColor(8, 8, 8, 230), 4.f);
+		fg->AddRect(pMin, pMax, ImColor(27, 27, 27, 255), 4.f, 0, 1.f);
+		// Pink accent line along the top edge.
+		fg->AddLine(ImVec2(pMin.x + 1.f, pMin.y + 1.f), ImVec2(pMax.x - 1.f, pMin.y + 1.f), pink, 1.f);
+
+		// Text (shadow first, then colored segments).
+		ImVec2 textPos = ImVec2(pMin.x + padX, pMin.y + padY);
+		fg->AddText(font, fontSz, ImVec2(textPos.x + 1.f, textPos.y + 1.f), shadow, name);
+		fg->AddText(font, fontSz, ImVec2(textPos.x + nameSz.x + 1.f, textPos.y + 1.f), shadow, tail);
+		fg->AddText(font, fontSz, textPos, pink, name);
+		fg->AddText(font, fontSz, ImVec2(textPos.x + nameSz.x, textPos.y), white, tail);
+	}
+
 	// EdgeBug chat notification (independent of the velocity HUD toggle).
 	// Detect the Detect_EB false->true edge here so it fires even when the HUD is off.
 	{

@@ -193,6 +193,7 @@ static void RenderVisuals_ESP(const ImVec4& main_color) {
 		ImGui::Checkbox("Minigun Glow", &Vars::ESP::Minigun);
 		ImGui::Checkbox("Ammunition Glow", &Vars::ESP::Ammo);
 		ImGui::Checkbox("Local ESP", &Vars::ESP::LocalESP);
+		ImGui::Checkbox("Watermark", &Vars::ESP::Watermark);
 
 		ImGui::PopStyleColor(2);
 	}
