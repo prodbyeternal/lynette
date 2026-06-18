@@ -27,28 +27,17 @@ void CGlobal_ModuleEntry::Load()
 	}
 
 	// Print pink ascii art from lyn.txt (\x1b[38;5;205m is a vibrant pink/magenta)
-	std::ifstream file("lyn.txt");
-	if (file.is_open()) {
-		std::cout << "\x1b[38;5;205m";
-		std::string line;
-		while (std::getline(file, line)) {
-			std::cout << line << "\n";
-		}
-		std::cout << "\x1b[0m\n";
-		file.close();
-	} else {
-		// Fallback ASCII art or warning if file is not in current working dir
-		std::ifstream file2("c:\\Users\\ethhh\\Downloads\\l4d2 src with skeet menu\\lyn.txt");
-		if (file2.is_open()) {
-			std::cout << "\x1b[38;5;205m";
-			std::string line;
-			while (std::getline(file2, line)) {
-				std::cout << line << "\n";
-			}
-			std::cout << "\x1b[0m\n";
-			file2.close();
-		}
-	}
+	std::cout << "\x1b[38;5;205m"
+	          << R"(  .---.       ____     __ ,---.   .--.    .-''-. ,---------. ,---------.    .-''-.   
+  | ,_|       \   \   /  /|    \  |  |  .'_ _   \\          \\          \ .'_ _   \  
+,-./  )        \  _. /  ' |  ,  \ |  | / ( ` )   '`--.  ,---' `--.  ,---'/ ( ` )   ' 
+\  '_ '`)       _( )_ .'  |  |\_ \|  |. (_ o _)  |   |   \       |   \  . (_ o _)  | 
+ > (_)  )   ___(_ o _)'   |  _( )_\  ||  (_,_)___|   :_ _:       :_ _:  |  (_,_)___| 
+(  .  .-'  |   |(_,_)'    | (_ o _)  |'  \   .---.   (_I_)       (_I_)  '  \   .---. 
+ `-'`-'|___|   `-'  /     |  (_,_)\  | \  `-'    /  (_(=)_)     (_(=)_)  \  `-'    / 
+  |        \\      /      |  |    |  |  \       /    (_I_)       (_I_)    \       /  
+  `--------` `-..-'       '--'    '--'   `'-..-'     '---'       '---'     `'-..-'   )"
+	          << "\x1b[0m\n\n";
 
 	std::cout << "Loading lynette mod menu...\n";
 	
