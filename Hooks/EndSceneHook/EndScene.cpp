@@ -264,9 +264,11 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 	if (Vars::Grenade::MolotovRangeVisual &&
 		I::EngineClient->IsInGame() && !I::EngineVGui->IsGameUIVisible())
 	{
-		static ConVar* inferno_max_range = I::Cvars->FindVar("inferno_max_range");
-		float radius = inferno_max_range ? inferno_max_range->GetFloat() : 172.f;
-		if (radius <= 0.f) radius = 172.f;
+		// Approximate fire footprint radius. inferno_max_range (default 172) is the
+		// theoretical max spread, which draws larger than the actual visible burn,
+		// so we use a user-tunable radius defaulting to a smaller, realistic value.
+		float radius = Vars::Grenade::MolotovRangeRadius;
+		if (radius <= 0.f) radius = 100.f;
 
 		ImDrawList* fg = ImGui::GetForegroundDrawList();
 		const Color rc = Vars::Grenade::MolotovRangeColor;
@@ -526,8 +528,26 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 	return Table.Original<fn>(42)(pDevice);
 }
 
+HRESULT __stdcall EndSceneHook::ResetHook(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pParams)
+{
+	// Release ImGui's DX9 device objects (font texture, vertex/index buffers)
+	// BEFORE the device is reset, otherwise the reset fails / leaves stale GPU
+	// resources and rendering freezes after alt-tab out of fullscreen.
+	if (g_Menu.isInitialized)
+		ImGui_ImplDX9_InvalidateDeviceObjects();
+
+	HRESULT hr = Table.Original<ResetFn>(16)(pDevice, pParams);
+
+	// Recreate them after the device has been reset.
+	if (g_Menu.isInitialized)
+		ImGui_ImplDX9_CreateDeviceObjects();
+
+	return hr;
+}
+
 void EndSceneHook::Init()
 {
 	XASSERT(Table.Init(g_dwDirectXDevice) == false);
 	XASSERT(Table.Hook(&Func, 42) == false);
+	XASSERT(Table.Hook(&ResetHook, 16) == false);
 }
