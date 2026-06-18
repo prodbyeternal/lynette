@@ -1,6 +1,9 @@
 #include "ParticleColor.h"
 #include "../../Features/Vars.h"
 #include <cstring>
+#include <string>
+#include <unordered_set>
+#include <iostream>
 
 using namespace Hooks;
 
@@ -88,13 +91,25 @@ static bool ResolveTargetColor(const char* name, float& r, float& g, float& b)
 		return true;
 	}
 
-	// Spitter acid goo / spit pool.
+	// Spitter acid: the spit trail AND the acid pool/AoE on the ground. L4D2 names
+	// the pool differently from the projectile, so match a broad set of substrings.
 	if (Vars::Grenade::ProjectileColorChanger &&
-		(contains("spitter") || contains("spit") || contains("acid")))
+		(contains("spitter") || contains("spit") || contains("acid") ||
+		 contains("goo") || contains("aoe") || contains("puddle") || contains("burn_ground")))
 	{
 		r = Vars::Grenade::SpitterColor.r() / 255.f;
 		g = Vars::Grenade::SpitterColor.g() / 255.f;
 		b = Vars::Grenade::SpitterColor.b() / 255.f;
+		return true;
+	}
+
+	// Smoker smoke cloud (spawned on death / from the smoker).
+	if (Vars::Grenade::ProjectileColorChanger &&
+		(contains("smoker") || contains("smoke")))
+	{
+		r = Vars::Grenade::SmokerColor.r() / 255.f;
+		g = Vars::Grenade::SmokerColor.g() / 255.f;
+		b = Vars::Grenade::SmokerColor.b() / 255.f;
 		return true;
 	}
 
@@ -119,21 +134,10 @@ static bool LooksLikeValidPtr(const void* p)
 	return true;
 }
 
-void __fastcall ParticleColor::Detour(void* ecx, void* edx, float dt)
+// SEH-guarded tint write. Kept in its own function with NO C++ objects so it can
+// use __try/__except (which can't coexist with object unwinding in the caller).
+static void WriteTint(void* ecx, float r, float g, float b)
 {
-	// Let the engine simulate first so particle state/colours are populated.
-	Func.Original<FN>()(ecx, edx, dt);
-
-	if (!ecx)
-		return;
-	if (!Vars::Grenade::ProjectileColorChanger && !Vars::Grenade::BloodColorChanger)
-		return;
-
-	const char* name = GetSystemName(ecx);
-	float r, g, b;
-	if (!ResolveTargetColor(name, r, g, b))
-		return;
-
 	int nActive = GetActiveParticles(ecx);
 	if (nActive <= 0)
 		return;
@@ -163,6 +167,35 @@ void __fastcall ParticleColor::Detour(void* ecx, void* edx, float dt)
 	{
 		// Bad offset/access — silently disable this write.
 	}
+}
+
+void __fastcall ParticleColor::Detour(void* ecx, void* edx, float dt)
+{
+	// Let the engine simulate first so particle state/colours are populated.
+	Func.Original<FN>()(ecx, edx, dt);
+
+	if (!ecx)
+		return;
+
+	const char* name = GetSystemName(ecx);
+
+	// Debug: print each unique particle system name once so exact names (acid
+	// pool, smoke cloud, etc.) can be discovered for matching.
+	if (Vars::Grenade::LogParticleNames && name)
+	{
+		static std::unordered_set<std::string> seen;
+		if (seen.insert(name).second)
+			std::cout << "[particle] " << name << "\n";
+	}
+
+	if (!Vars::Grenade::ProjectileColorChanger && !Vars::Grenade::BloodColorChanger)
+		return;
+
+	float r, g, b;
+	if (!ResolveTargetColor(name, r, g, b))
+		return;
+
+	WriteTint(ecx, r, g, b);
 }
 
 void ParticleColor::Init()

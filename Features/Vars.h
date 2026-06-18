@@ -113,10 +113,15 @@ namespace Vars
 		inline Color BileColor = { 0, 255, 0, 255 };
 		inline Color MolotovColor = { 255, 100, 0, 255 };
 		inline Color SpitterColor = { 180, 255, 0, 255 };
+		inline Color SmokerColor = { 120, 120, 120, 255 };
 
-		// Molotov fire range visual (ground circle at predicted landing)
+		// Debug: print every particle system name to console as it simulates,
+		// so exact names (acid pool, smoke cloud, etc.) can be discovered.
+		inline bool LogParticleNames = false;
+
+		// Molotov fire range visual (ground circle around active infernos)
 		inline bool MolotovRangeVisual = false;
-		inline float MolotovRangeRadius = 150.f; // approximate inferno spread radius
+		inline float MolotovRangeRadius = 100.f; // visible fire footprint radius (tunable)
 		inline Color MolotovRangeColor = { 255, 80, 0, 200 };
 
 		// Blood color changer (particle-based; see note in code)
