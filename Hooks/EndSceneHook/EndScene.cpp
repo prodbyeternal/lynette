@@ -18,7 +18,18 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 	if (firstAddress != _ReturnAddress())
 		return Table.Original<fn>(42)(pDevice);
 
-	g_Menu.Render(pDevice);
+	// We must render the menu if it's open, which creates/starts the ImGui frame.
+	if (g_Menu.isOpen)
+	{
+		g_Menu.Render(pDevice);
+	}
+	else
+	{
+		// If the menu is closed, we need to manually start a new frame to draw our speedometer
+		ImGui_ImplDX9_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
+	}
 
 	// Velocity HUD & Keybind Indicators Overlay
 	if (I::EngineClient->IsInGame() && !I::EngineVGui->IsGameUIVisible() && Vars::ESP::VelocityHUD)
@@ -138,6 +149,14 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 
 			ImGui::End();
 		}
+	}
+
+	// End the ImGui frame only if we manually started it (menu is closed)
+	if (!g_Menu.isOpen)
+	{
+		ImGui::EndFrame();
+		ImGui::Render();
+		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 	}
 
 	return Table.Original<fn>(42)(pDevice);
