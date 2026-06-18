@@ -88,6 +88,7 @@ void __fastcall BaseClient::FrameStageNotify::Detour(void* ecx, void* edx, Clien
 		gEntityCache.Clear(); /* dont we already clear in LevelShutdown?*/
 		break;
 	}
+
 	case ClientFrameStage_t::FRAME_NET_UPDATE_END:
 	{
 		C_TerrorPlayer* pLocal = I::ClientEntityList->GetClientEntity(I::EngineClient->GetLocalPlayer())->As<C_TerrorPlayer*>();

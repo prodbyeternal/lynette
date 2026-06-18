@@ -241,10 +241,9 @@ public:
 	M_NETVAR(m_triggerBloat, int, "CBaseEntity", "m_triggerBloat");
 	M_NETVAR(m_vecSpecifiedSurroundingMins, Vector, "CBaseEntity", "m_vecSpecifiedSurroundingMins");
 	M_NETVAR(m_vecSpecifiedSurroundingMaxs, Vector, "CBaseEntity", "m_vecSpecifiedSurroundingMaxs");
-	M_NETVAR(m_Glow, void*, "CBaseEntity", "m_Glow");
+	// Glow properties (resolved via DT_BaseEntity -> m_Glow -> DT_GlowProperty)
 	M_NETVAR(m_iGlowType, int, "CBaseEntity", "m_iGlowType");
 	M_NETVAR(m_nGlowRange, int, "CBaseEntity", "m_nGlowRange");
-	M_NETVAR(m_nGlowRangeMin, int, "CBaseEntity", "m_nGlowRangeMin");
 	M_NETVAR(m_glowColorOverride, int, "CBaseEntity", "m_glowColorOverride");
 	M_NETVAR(m_bFlashing, bool, "CBaseEntity", "m_bFlashing");
 	M_NETVAR(m_iTextureFrameIndex, int, "CBaseEntity", "m_iTextureFrameIndex");

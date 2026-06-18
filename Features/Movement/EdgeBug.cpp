@@ -8,22 +8,33 @@ bool check_edge_bug(CUserCmd* cmd, bool& brk) {
 
 	Vector unpredicted_velocity = Prediction_backup::vec_velocity;
 	Vector predicted_velocity = l4d2::local->m_vecVelocity();
+
+	Vector unpredicted_origin = Prediction_backup::vec_origin;
+	Vector predicted_origin = l4d2::local->m_vecOrigin();
+
 	int predicted_flags = l4d2::local->m_fFlags();
 
 	static auto Sv_gravity = I::Cvars->FindVar("sv_gravity");
 	auto sv_gravity = Sv_gravity->GetFloat();
+	float fTickInterval = I::GlobalVars->interval_per_tick;
+	float fTickRate = (fTickInterval > 0) ? (1.0f / fTickInterval) : 0.0f;
+	float gravityvelo = ((sv_gravity / 2) / fTickRate) * -1.f;
 
 	float z_vel_pred = round(predicted_velocity.z);
-	if (z_vel_pred >= 0.f || (predicted_flags & FL_ONGROUND)) {
+	float l2d_vel_pred = round(l4d2::local->m_vecVelocity().Lenght2D());
+
+	// There is no point in edgebugging while having 0 velocity
+	if (z_vel_pred >= 0.f || (predicted_flags & FL_ONGROUND) || l2d_vel_pred == 0.f) {
 		brk = true;
 		return false;
 	}
-	else if (unpredicted_velocity.z < 0.f && predicted_velocity.z > unpredicted_velocity.z && predicted_velocity.z == l4d2::half_gravity_per_tick && !(l4d2::local->m_fFlags() & FL_ONGROUND))
-	{
-		return true;
-	}
 	else if (unpredicted_velocity.z < 0.f && predicted_velocity.z > unpredicted_velocity.z && predicted_velocity.z < 0.f) {
-		float z_vel = predicted_velocity.z;
+		// Discard checks if unpredicted origin is below predicted origin (player is going up)
+		if (unpredicted_origin.z < predicted_origin.z) {
+			return false;
+		}
+
+		int z_vel = predicted_velocity.z;
 
 		Prediction::Begin(cmd);
 		Prediction::Finish();
@@ -38,6 +49,9 @@ bool check_edge_bug(CUserCmd* cmd, bool& brk) {
 			brk = true;
 			return false;
 		}
+	}
+	else if (unpredicted_velocity.z < gravityvelo && round(predicted_velocity.z) == round(gravityvelo) && l4d2::local->m_MoveType() != MOVETYPE_LADDER) {
+		return true;
 	}
 	return false;
 }

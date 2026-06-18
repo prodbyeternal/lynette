@@ -12,7 +12,7 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Fonts
-static ImFont* verdanaFont = nullptr;
+ImFont* verdanaFont = nullptr;
 static ImFont* tabFont = nullptr;
 
 static int tab = 0;
@@ -42,8 +42,42 @@ inline float CustomClamp(float value, float min, float max) {
 	return (value < min) ? min : (value > max) ? max : value;
 }
 
+void Menu::Init(IDirect3DDevice9* pDevice) {
+	if (isInitialized) return;
+
+	ImGui::CreateContext();
+	
+	// Find target game window
+	HWND hwWindow = FindWindowW(L"Valve001", nullptr);
+	ImGui_ImplWin32_Init(hwWindow);
+	ImGui_ImplDX9_Init(pDevice);
+
+	ImGuiIO& io = ImGui::GetIO();
+	
+	ImFontConfig font_config;
+	font_config.OversampleH = 1;
+	font_config.OversampleV = 1;
+	font_config.PixelSnapH = 1;
+
+	static const ImWchar ranges[] = {
+		0x0020, 0x00FF,
+		0x0400, 0x044F,
+		0,
+	};
+
+	// Load assets from Header.h
+	tabFont = io.Fonts->AddFontFromMemoryTTF((void*)icon, sizeof(icon), 44, &font_config, ranges);
+	
+	// Load Verdana
+	verdanaFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\verdana.ttf", 13.0f, &font_config, io.Fonts->GetGlyphRangesJapanese());
+
+	isInitialized = true;
+}
+
 void Menu::Render(IDirect3DDevice9* pDevice) {
-	static bool bInitImGui = false;
+	if (!isInitialized) {
+		Init(pDevice);
+	}
 	
 	// Reset/configure render state for ImGui overlay
 	pDevice->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
@@ -51,50 +85,10 @@ void Menu::Render(IDirect3DDevice9* pDevice) {
 	pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
 	pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
 
-	if (!bInitImGui) {
-		ImGui::CreateContext();
-		
-		// Find target game window
-		HWND hwWindow = FindWindowW(L"Valve001", nullptr);
-		ImGui_ImplWin32_Init(hwWindow);
-		ImGui_ImplDX9_Init(pDevice);
-
-		ImGuiIO& io = ImGui::GetIO();
-		
-		ImFontConfig font_config;
-		font_config.OversampleH = 1;
-		font_config.OversampleV = 1;
-		font_config.PixelSnapH = 1;
-
-		static const ImWchar ranges[] = {
-			0x0020, 0x00FF,
-			0x0400, 0x044F,
-			0,
-		};
-
-		// Load assets from Header.h
-		tabFont = io.Fonts->AddFontFromMemoryTTF((void*)icon, sizeof(icon), 44, &font_config, ranges);
-		
-		// Load Verdana
-		verdanaFont = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\verdana.ttf", 13.0f, &font_config, io.Fonts->GetGlyphRangesJapanese());
-
-		bInitImGui = true;
-	}
-
-	// Toggle menu visibility on VK_INSERT
-	if (GetAsyncKeyState(VK_INSERT) & 1) {
-		g_Menu.isOpen = !g_Menu.isOpen;
-		I::VGuiSurface->SetCursorAlwaysVisible(g_Menu.isOpen);
-	}
-
 	window_alpha = g_Menu.isOpen ? 1.0f : 0.0f;
 	ImGui::GetIO().MouseDrawCursor = g_Menu.isOpen;
 
 	if (window_alpha > 0.0f) {
-		ImGui_ImplDX9_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
-
 		ImVec4 main_color = ImVec4(210.0f / 255.0f, 100.0f / 255.0f, 185.0f / 255.0f, 1.0f); // Sleek signature theme color
 
 		auto s = ImVec2{}, p = ImVec2{}, gs = ImVec2{ 600, 420 };
@@ -294,11 +288,7 @@ void Menu::Render(IDirect3DDevice9* pDevice) {
 							ImGui::Checkbox("Ammunition Glow", &Vars::ESP::Ammo);
 							ImGui::Checkbox("Local ESP", &Vars::ESP::LocalESP);
 
-							ImGui::Separator();
-							ImGui::Checkbox("Glow Survivors", &Vars::ESP::GlowSurvivors);
-							ImGui::Checkbox("Glow Special Infected", &Vars::ESP::GlowSI);
-							ImGui::Checkbox("Glow Common Infected", &Vars::ESP::GlowCI);
-							ImGui::Checkbox("Glow Witch", &Vars::ESP::GlowWitch);
+
 
 							ImGui::PopStyleColor(2);
 						}
@@ -541,11 +531,6 @@ void Menu::Render(IDirect3DDevice9* pDevice) {
 			}
 		}
 		ImGui::End();
-
-		// Render the ImGui frame overlay
-		ImGui::EndFrame();
-		ImGui::Render();
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 	}
 }
 
