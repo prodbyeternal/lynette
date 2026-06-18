@@ -163,9 +163,11 @@ void CGlobal_ModuleEntry::Load()
 	}
 	G::Hooks.Init();
 
-	// Initialise the config system and auto-load the "default" config if present.
+	// Initialise the config system. We intentionally do NOT auto-load a config
+	// here — loading is opt-in via the Config tab's "Load Config" button. Auto
+	// loading a leftover "default" config silently re-enabled features (Anti-Aim,
+	// Fog, etc.) on map load, which is surprising and hard to diagnose.
 	G::Config.Init();
-	G::Config.Load("default");
 
 	if (ansiSupported) {
 		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << " hooked functions:\n";
