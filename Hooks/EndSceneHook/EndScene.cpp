@@ -1,5 +1,6 @@
 #include "EndScene.h"
 #include "../../Features/NewNewMenu/Menu.h"
+#include "../../Features/NewNewMenu/babagui/imgui.h"
 #include <intrin.h>
 #include <deque>
 #include <numeric>
@@ -23,7 +24,7 @@ HRESULT __stdcall EndSceneHook::Func(IDirect3DDevice9* pDevice)
 		if (pLocal && pLocal->IsAlive())
 		{
 			Vector vel = pLocal->m_vecVelocity();
-			float currentSpeed = vel.Length2D();
+			float currentSpeed = vel.Lenght2D();
 
 			velocityHistory.push_back(currentSpeed);
 			if (velocityHistory.size() > 120)
