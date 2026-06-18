@@ -3,6 +3,7 @@
 #include "MinHook/MinHook.h"
 
 #include <memory>
+#include <iostream>
 
 namespace Hook
 {
@@ -10,7 +11,13 @@ namespace Hook
 	{
 	public:
 		inline bool Init(void* pTarget, void* pDetour) {
-			return (MH_CreateHook(pTarget, pDetour, &m_pOriginal) == MH_STATUS::MH_OK);
+			const bool status = (MH_CreateHook(pTarget, pDetour, &m_pOriginal) == MH_STATUS::MH_OK);
+			if (status) {
+				std::cout << "    [Detour Hook] Target: 0x" << std::hex << reinterpret_cast<uintptr_t>(pTarget) 
+				          << " -> Detour: 0x" << reinterpret_cast<uintptr_t>(pDetour) 
+				          << " (Original: 0x" << reinterpret_cast<uintptr_t>(m_pOriginal) << ")" << std::dec << "\n";
+			}
+			return status;
 		}
 
 	public:
@@ -40,8 +47,17 @@ namespace Hook
 
 		inline bool Hook(void* pDetour, const unsigned int nIndex)
 		{
-			if (m_pBase && m_nSize)
-				return (MH_CreateHook((*reinterpret_cast<void***>(m_pBase))[nIndex], pDetour, &m_pOriginals[nIndex]) == MH_STATUS::MH_OK);
+			if (m_pBase && m_nSize) {
+				void* pTarget = (*reinterpret_cast<void***>(m_pBase))[nIndex];
+				const bool status = (MH_CreateHook(pTarget, pDetour, &m_pOriginals[nIndex]) == MH_STATUS::MH_OK);
+				if (status) {
+					std::cout << "    [VTable Hook] Index: " << std::dec << nIndex 
+					          << " | Target: 0x" << std::hex << reinterpret_cast<uintptr_t>(pTarget) 
+					          << " -> Detour: 0x" << reinterpret_cast<uintptr_t>(pDetour) 
+					          << " (Original: 0x" << reinterpret_cast<uintptr_t>(m_pOriginals[nIndex]) << ")" << std::dec << "\n";
+				}
+				return status;
+			}
 
 			return false;
 		}

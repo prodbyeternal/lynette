@@ -18,9 +18,5 @@ void ModelRenderSystem::Init()
 
 		if (pfDrawModels)
 			XASSERT(Func.Init(pfDrawModels, &Detour) == false);
-
-		AllocConsole();
-		freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
-		printf("Pula %x\n", pfDrawModels);
 	}
 }
