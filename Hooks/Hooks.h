@@ -14,6 +14,7 @@
 #include "Panels/Panels.h"
 #include "WndProc/WndProc.h"
 #include "BaseAnimating/BaseAnimating.h"
+#include "ParticleColor/ParticleColor.h"
 class CGlobal_Hooks
 {
 public:

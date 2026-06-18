@@ -11,6 +11,12 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include "../Features/Config/Config.h"
+
+// ANSI color constants for console output
+constexpr const char* ANSI_GREEN = "\x1b[32m";
+constexpr const char* ANSI_PINK = "\x1b[38;5;205m";
+constexpr const char* ANSI_RESET = "\x1b[0m";
 
 void CGlobal_ModuleEntry::Load()
 {
@@ -21,14 +27,17 @@ void CGlobal_ModuleEntry::Load()
 	// Enable ANSI escape sequence support for colors
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dwMode = 0;
+	bool ansiSupported = false;
 	if (hOut != INVALID_HANDLE_VALUE) {
 		GetConsoleMode(hOut, &dwMode);
-		SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+		ansiSupported = SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 	}
 
-	// Print pink ascii art from lyn.txt (\x1b[38;5;205m is a vibrant pink/magenta)
-	std::cout << "\x1b[38;5;205m"
-	          << R"(  .---.       ____     __ ,---.   .--.    .-''-. ,---------. ,---------.    .-''-.   
+	// Print pink ascii art from lyn.txt (preserve original pink color)
+	if (ansiSupported) {
+		std::cout << ANSI_PINK;
+	}
+	std::cout << R"(  .---.       ____     __ ,---.   .--.    .-''-. ,---------. ,---------.    .-''-.   
   | ,_|       \   \   /  /|    \  |  |  .'_ _   \\          \\          \ .'_ _   \  
 ,-./  )        \  _. /  ' |  ,  \ |  | / ( ` )   '`--.  ,---' `--.  ,---'/ ( ` )   ' 
 \  '_ '`)       _( )_ .'  |  |\_ \|  |. (_ o _)  |   |   \       |   \  . (_ o _)  | 
@@ -36,10 +45,17 @@ void CGlobal_ModuleEntry::Load()
 (  .  .-'  |   |(_,_)'    | (_ o _)  |'  \   .---.   (_I_)       (_I_)  '  \   .---. 
  `-'`-'|___|   `-'  /     |  (_,_)\  | \  `-'    /  (_(=)_)     (_(=)_)  \  `-'    / 
   |        \\      /      |  |    |  |  \       /    (_I_)       (_I_)    \       /  
-  `--------` `-..-'       '--'    '--'   `'-..-'     '---'       '---'     `'-..-'   )"
-	          << "\x1b[0m\n\n";
+  `--------` `-..-'       '--'    '--'   `'-..-'     '---'       '---'     `'-..-'   )";
+	if (ansiSupported) {
+		std::cout << ANSI_RESET;
+	}
+	std::cout << "\n\n";
 
-	std::cout << "Loading lynette mod menu...\n";
+	if (ansiSupported) {
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << " loading lynette mod menu...\n";
+	} else {
+		std::cout << "[+] loading lynette mod menu...\n";
+	}
 	
 	const HMODULE hClient = GetModuleHandleA("client.dll");
 	const HMODULE hEngine = GetModuleHandleA("engine.dll");
@@ -49,24 +65,42 @@ void CGlobal_ModuleEntry::Load()
 	const HMODULE hMaterialSystem = GetModuleHandleA("materialsystem.dll");
 	const HMODULE hShaderApi = GetModuleHandleA("shaderapidx9.dll");
 
-	std::cout << "Base Memory Addresses:\n";
-	if (hClient) std::cout << "  client.dll:         0x" << std::hex << reinterpret_cast<uintptr_t>(hClient) << std::dec << "\n";
-	if (hEngine) std::cout << "  engine.dll:         0x" << std::hex << reinterpret_cast<uintptr_t>(hEngine) << std::dec << "\n";
-	if (hVgui2) std::cout << "  vgui2.dll:          0x" << std::hex << reinterpret_cast<uintptr_t>(hVgui2) << std::dec << "\n";
-	if (hVguiMatSurface) std::cout << "  vguimatsurface.dll: 0x" << std::hex << reinterpret_cast<uintptr_t>(hVguiMatSurface) << std::dec << "\n";
-	if (hMaterialSystem) std::cout << "  materialsystem.dll: 0x" << std::hex << reinterpret_cast<uintptr_t>(hMaterialSystem) << std::dec << "\n";
-	if (hShaderApi) std::cout << "  shaderapidx9.dll:   0x" << std::hex << reinterpret_cast<uintptr_t>(hShaderApi) << std::dec << "\n";
+	if (ansiSupported) {
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << " base memory addresses:\n";
+		if (hClient) std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   client.dll:         0x" << std::hex << reinterpret_cast<uintptr_t>(hClient) << std::dec << "\n";
+		if (hEngine) std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   engine.dll:         0x" << std::hex << reinterpret_cast<uintptr_t>(hEngine) << std::dec << "\n";
+		if (hVgui2) std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   vgui2.dll:          0x" << std::hex << reinterpret_cast<uintptr_t>(hVgui2) << std::dec << "\n";
+		if (hVguiMatSurface) std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   vguimatsurface.dll: 0x" << std::hex << reinterpret_cast<uintptr_t>(hVguiMatSurface) << std::dec << "\n";
+		if (hMaterialSystem) std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   materialsystem.dll: 0x" << std::hex << reinterpret_cast<uintptr_t>(hMaterialSystem) << std::dec << "\n";
+		if (hShaderApi) std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   shaderapidx9.dll:   0x" << std::hex << reinterpret_cast<uintptr_t>(hShaderApi) << std::dec << "\n";
+	} else {
+		std::cout << "[+] base memory addresses:\n";
+		if (hClient) std::cout << "[+]   client.dll:         0x" << std::hex << reinterpret_cast<uintptr_t>(hClient) << std::dec << "\n";
+		if (hEngine) std::cout << "[+]   engine.dll:         0x" << std::hex << reinterpret_cast<uintptr_t>(hEngine) << std::dec << "\n";
+		if (hVgui2) std::cout << "[+]   vgui2.dll:          0x" << std::hex << reinterpret_cast<uintptr_t>(hVgui2) << std::dec << "\n";
+		if (hVguiMatSurface) std::cout << "[+]   vguimatsurface.dll: 0x" << std::hex << reinterpret_cast<uintptr_t>(hVguiMatSurface) << std::dec << "\n";
+		if (hMaterialSystem) std::cout << "[+]   materialsystem.dll: 0x" << std::hex << reinterpret_cast<uintptr_t>(hMaterialSystem) << std::dec << "\n";
+		if (hShaderApi) std::cout << "[+]   shaderapidx9.dll:   0x" << std::hex << reinterpret_cast<uintptr_t>(hShaderApi) << std::dec << "\n";
+	}
 	std::cout << "\n";
 
 	while (!GetModuleHandleA("serverbrowser.dll"))
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 
-	std::cout << "Initializing Offsets...\n";
+	if (ansiSupported) {
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << " initializing offsets...\n";
+	} else {
+		std::cout << "[+] initializing offsets...\n";
+	}
 	U::Offsets.Init();
 
 	//Interfaces
 	{
-		std::cout << "Getting Interfaces...\n";
+		if (ansiSupported) {
+			std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << " getting interfaces...\n";
+		} else {
+			std::cout << "[+] getting interfaces...\n";
+		}
 		I::BaseClient       = U::Interface.Get<IBaseClientDLL*>("client.dll", "VClient016");
 		I::ClientEntityList = U::Interface.Get<IClientEntityList*>("client.dll", "VClientEntityList003");
 		I::Prediction       = U::Interface.Get<IPrediction*>("client.dll", "VClientPrediction001");
@@ -113,28 +147,57 @@ void CGlobal_ModuleEntry::Load()
 		}
 	}
 
-	std::cout << "Hooking functions...\n";
-	
-	std::cout << "  Drawing Manager...\n";
+	if (ansiSupported) {
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << " hooking functions...\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   drawing manager...\n";
+	} else {
+		std::cout << "[+] hooking functions...\n";
+		std::cout << "[+]   drawing manager...\n";
+	}
 	G::Draw.Init();
 	
-	std::cout << "  Hooks...\n";
+	if (ansiSupported) {
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   hooks...\n";
+	} else {
+		std::cout << "[+]   hooks...\n";
+	}
 	G::Hooks.Init();
 
-	std::cout << "Hooked functions:\n";
-	std::cout << "  - LevelInitPreEntity, LevelInitPostEntity, LevelShutdown, FrameStageNotify\n";
-	std::cout << "  - CalcPlayerView, CalcViewModelView\n";
-	std::cout << "  - CL_Move\n";
-	std::cout << "  - ShouldDrawFog, CreateMove, DoPostScreenSpaceEffects, GetViewModelFOV, OverrideView\n";
-	std::cout << "  - InPrediction\n";
-	std::cout << "  - PaintTraverse\n";
-	std::cout << "  - ForcedMaterialOverride, DrawModelExecute\n";
-	std::cout << "  - DrawModels (ModelRenderSystem)\n";
-	std::cout << "  - GetSeqIdForGroup\n";
-	std::cout << "  - GetTerrorRules\n";
-	std::cout << "  - WndProc (Window Hook)\n";
-	std::cout << "  - EndScene (D3D9 Hook)\n";
-	std::cout << "  - GetVelocity (BaseAnimating)\n";
-	
-	std::cout << "\nlynette successfully loaded!\n\n";
+	// Initialise the config system and auto-load the "default" config if present.
+	G::Config.Init();
+	G::Config.Load("default");
+
+	if (ansiSupported) {
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << " hooked functions:\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - levelinitpreentity, levelinitpostentity, levelshutdown, framestagenotify\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - calcplayerview, calcviewmodelview\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - cl_move\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - shoulddrawfog, createmove, dopostscreenspaceeffects, getviewmodelfov, overrideview\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - inprediction\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - painttraverse\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - forcedmaterialoverride, drawmodelexecute\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - drawmodels (modelrendersystem)\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - getseqidforgroup\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - getterrorrules\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - wndproc (window hook)\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - endscene (d3d9 hook)\n";
+		std::cout << ANSI_GREEN << "[+]" << ANSI_RESET << "   - getvelocity (baseanimating)\n";
+		std::cout << "\n" << ANSI_GREEN << "[+]" << ANSI_RESET << " lynette successfully loaded!\n\n";
+	} else {
+		std::cout << "[+] hooked functions:\n";
+		std::cout << "[+]   - levelinitpreentity, levelinitpostentity, levelshutdown, framestagenotify\n";
+		std::cout << "[+]   - calcplayerview, calcviewmodelview\n";
+		std::cout << "[+]   - cl_move\n";
+		std::cout << "[+]   - shoulddrawfog, createmove, dopostscreenspaceeffects, getviewmodelfov, overrideview\n";
+		std::cout << "[+]   - inprediction\n";
+		std::cout << "[+]   - painttraverse\n";
+		std::cout << "[+]   - forcedmaterialoverride, drawmodelexecute\n";
+		std::cout << "[+]   - drawmodels (modelrendersystem)\n";
+		std::cout << "[+]   - getseqidforgroup\n";
+		std::cout << "[+]   - getterrorrules\n";
+		std::cout << "[+]   - wndproc (window hook)\n";
+		std::cout << "[+]   - endscene (d3d9 hook)\n";
+		std::cout << "[+]   - getvelocity (baseanimating)\n";
+		std::cout << "\n[+] lynette successfully loaded!\n\n";
+	}
 }

@@ -37,10 +37,6 @@ public:
 	virtual ConCommand* FindCommand(const char* name) = 0;
 	virtual const ConCommand* FindCommand(const char* name) const = 0;
 
-	// Get first ConCommandBase to allow iteration
-	virtual ConCommandBase* GetCommands(void) = 0;
-	virtual const ConCommandBase* GetCommands(void) const = 0;
-
 	// Install a global change callback (to be called when any convar changes) 
 	virtual void			InstallGlobalChangeCallback(FnChangeCallback_t callback) = 0;
 	virtual void			RemoveGlobalChangeCallback(FnChangeCallback_t callback) = 0;
@@ -60,6 +56,19 @@ public:
 	// A little hacky, owing to the fact the engine is loaded
 	// well after ICVar, so we can't use the standard connect pattern
 	virtual void			InstallCVarQuery(ICvarQuery* pQuery) = 0;
+
+	// NOTE: The real VEngineCvar007 interface has these split-screen / console
+	// methods here. They MUST be present (even if unused) so that the virtuals
+	// after them — especially FactoryInternalIterator — land on the correct
+	// vtable slots. A previous version of this header replaced these with a
+	// fabricated GetCommands() method, which shifted the vtable and caused
+	// "ESP was not properly saved" crashes when iterating cvars.
+	virtual void			SetMaxSplitScreenSlots(int nSlots) = 0;
+	virtual int				GetMaxSplitScreenSlots() const = 0;
+	virtual void			AddSplitScreenConVars() = 0;
+	virtual void			RemoveSplitScreenConVars(int id) = 0;
+	virtual int				GetConsoleDisplayFuncCount() const = 0;
+	virtual void			GetConsoleText(int nDisplayFuncIndex, char* pchText, size_t bufSize) const = 0;
 
 	virtual bool			IsMaterialThreadSetAllowed() const = 0;
 	virtual void			QueueMaterialThreadSetValue(ConVar* pConVar, const char* pValue) = 0;
@@ -116,5 +125,36 @@ protected:
 	virtual ICVarIteratorInternal* FactoryInternalIterator(void) = 0;
 	friend class Iterator;
 };
+
+// Inline definitions for the cvar iterator (mirrors the real engine header).
+inline ICvar::Iterator::Iterator(ICvar* icvar)
+{
+	m_pIter = icvar->FactoryInternalIterator();
+}
+
+inline ICvar::Iterator::~Iterator(void)
+{
+	delete m_pIter;
+}
+
+inline void ICvar::Iterator::SetFirst(void)
+{
+	m_pIter->SetFirst();
+}
+
+inline void ICvar::Iterator::Next(void)
+{
+	m_pIter->Next();
+}
+
+inline bool ICvar::Iterator::IsValid(void)
+{
+	return m_pIter->IsValid();
+}
+
+inline ConCommandBase* ICvar::Iterator::Get(void)
+{
+	return m_pIter->Get();
+}
 
 namespace I { inline ICvar* Cvars = nullptr; }
