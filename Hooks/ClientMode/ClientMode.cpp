@@ -11,6 +11,7 @@
 #include "../../Features/Movement/MovementPrediction.h"
 #include "../../Features/Movement/Movement.h"
 #include "../../SDK/L4D2/Interfaces/IConVar.h"
+#include "../../Features/CvarTools/CvarTools.h"
 using namespace Hooks;
 
 bool __fastcall ClientMode::ShouldDrawFog::Detour(void* ecx, void* edx)
@@ -35,6 +36,11 @@ bool __fastcall ClientMode::CreateMove::Detour(void* ecx, void* edx, float input
 
 	if (pLocal && !pLocal->deadflag())
 	{
+		// Ensure client-side prediction is on so movement features work on remote
+		// servers, not just local listen servers. Runs cheaply (no-op once set).
+		if (Vars::Movement::bForcePrediction)
+			G::CvarTools.EnsurePredictionEnabled();
+
 		auto* pWpnEnt = pLocal->GetActiveWeapon();
 		C_TerrorWeapon* pWeapon = pWpnEnt ? pWpnEnt->As<C_TerrorWeapon*>() : nullptr;
 

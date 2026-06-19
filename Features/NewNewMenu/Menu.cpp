@@ -463,7 +463,7 @@ static void RenderMisc_Movement(const ImVec4& main_color) {
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 
 		ImGui::Checkbox("Extended Search Paths", &Vars::Movement::ExtendedEdgeBugPaths);
-		ImGui::Checkbox("LAN Game Compatibility", &Vars::Movement::bLAN);
+		ImGui::Checkbox("Force Prediction (online)", &Vars::Movement::bForcePrediction);
 		ImGui::Checkbox("CS Style GameMovement", &Vars::Movement::bCSGameMovement);
 		ImGui::Checkbox("Suppress Fall Damage", &Vars::Movement::EdgeBugNoDamage);
 		ImGui::Checkbox("Debug Path Visual", &Vars::Movement::EdgeBugDebugVisual);

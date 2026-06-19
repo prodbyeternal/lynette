@@ -255,7 +255,10 @@ namespace Vars
 		inline bool ExtendedEdgeBugPaths = false;
 		inline int EdgeBugPaths = 2;
 		inline float EdgeBugAngle = 15.f;
-		inline bool bLAN = true;
+		// When enabled, forces client-side prediction on so movement features
+		// (bhop/edgejump/edgebug/etc.) behave on remote/dedicated servers, not
+		// just on a local listen server. (Was the old, never-wired "bLAN" flag.)
+		inline bool bForcePrediction = true;
 		inline bool bCSGameMovement = false;
 		inline bool EdgeBugNoDamage = false;
 		inline bool EdgeBugDebugVisual = false; // draw the predicted edgebug path in-world
