@@ -130,6 +130,9 @@ namespace Movement
 	inline bool Should_LJ = false;
 	inline bool Should_EB = false;
 	inline bool Detect_EB = false;
+	inline bool Detect_EJ = false;
+	inline bool Detect_MJ = false;
+	inline bool Detect_LJ = false;
 
 	void Bhop();
 	void EdgeJump();

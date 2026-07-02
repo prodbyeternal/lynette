@@ -14,6 +14,7 @@ namespace Vars
 	namespace Menu
 	{
 		inline bool Opened = false;
+		inline Color AccentColor = { 210, 100, 185, 255 };
 		//inline Rect_t Position = { 100, 100, 870, 480 };
 		//inline const auto Title = L"Team Fortress 2";
 		inline int TitleBarH = 16;
@@ -184,6 +185,9 @@ namespace Vars
 		inline bool VelocityGraph = false;
 		inline float VelocityX = 0.5f;
 		inline float VelocityY = 0.85f;
+
+		// Top-right watermark ("lynette | XXX fps")
+		inline bool Watermark = false;
 	}
 	namespace Chams
 	{
@@ -248,14 +252,18 @@ namespace Vars
 		inline int kMiniJump = 0;
 		inline bool bEdgeBug = false;
 		inline int kEdgeBug = 0;
-		inline int EdgeBugTicks = 12;
+		inline int EdgeBugTicks = 16;
 		inline bool ExtendedEdgeBugPaths = false;
 		inline int EdgeBugPaths = 2;
 		inline float EdgeBugAngle = 15.f;
-		inline bool bLAN = true;
+		// When enabled, forces client-side prediction on so movement features
+		// (bhop/edgejump/edgebug/etc.) behave on remote/dedicated servers, not
+		// just on a local listen server. (Was the old, never-wired "bLAN" flag.)
+		inline bool bForcePrediction = true;
 		inline bool bCSGameMovement = false;
 		inline bool EdgeBugNoDamage = false;
 		inline bool EdgeBugDebugVisual = false; // draw the predicted edgebug path in-world
 		inline float fAiraccelerate = 10.f;
+		inline bool bMiniJumpHoldDuck = true;
 	}
 }

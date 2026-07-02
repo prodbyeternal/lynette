@@ -433,6 +433,11 @@
     <ClInclude Include="Features\Movement\MovementPrediction.h" />
     <ClInclude Include="Features\NewNewMenu\MenuBackground.h" />
     <ClInclude Include="Features\NewNewMenu\MenuControls.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaEasing.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaAnimations.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaMenu.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaTabs.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaElements.h" />
     <ClInclude Include="Features\NewNewMenu\babagui\imconfig.h" />
     <ClInclude Include="Features\NewNewMenu\babagui\imgui.h" />
     <ClInclude Include="Features\NewNewMenu\babagui\imgui_impl_dx9.h" />

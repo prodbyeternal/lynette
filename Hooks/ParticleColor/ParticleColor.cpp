@@ -73,6 +73,18 @@ static bool ResolveTargetColor(const char* name, float& r, float& g, float& b)
 
 	auto contains = [&](const char* sub) { return std::strstr(name, sub) != nullptr; };
 
+	// Blood is matched FIRST and takes priority. L4D2 blood systems are named
+	// with "blood" (blood_impact, blood_pool/puddle, etc.). Checking this before
+	// the spitter rule prevents generic spitter tokens (puddle/aoe/ground) from
+	// stealing blood pools and decals.
+	if (Vars::Grenade::BloodColorChanger && contains("blood"))
+	{
+		r = Vars::Grenade::BloodColor.r() / 255.f;
+		g = Vars::Grenade::BloodColor.g() / 255.f;
+		b = Vars::Grenade::BloodColor.b() / 255.f;
+		return true;
+	}
+
 	if (Vars::Grenade::ProjectileColorChanger &&
 		(contains("molotov") || contains("inferno") || contains("fire")))
 	{
@@ -91,11 +103,12 @@ static bool ResolveTargetColor(const char* name, float& r, float& g, float& b)
 		return true;
 	}
 
-	// Spitter acid: the spit trail AND the acid pool/AoE on the ground. L4D2 names
-	// the pool differently from the projectile, so match a broad set of substrings.
-	if (Vars::Grenade::ProjectileColorChanger &&
-		(contains("spitter") || contains("spit") || contains("acid") ||
-		 contains("goo") || contains("aoe") || contains("puddle") || contains("burn_ground")))
+	// Spitter acid: the spit trail AND the acid pool/AoE on the ground. Match only
+	// spitter-specific tokens. The previously-used generic words (goo/aoe/puddle/
+	// burn_ground) also matched blood pools and other ground decals, so they're
+	// gone — every real spitter system name contains "spit" (spitter_projectile,
+	// spitter_slime_aoe, spit_trail, etc.).
+	if (Vars::Grenade::ProjectileColorChanger && contains("spit"))
 	{
 		r = Vars::Grenade::SpitterColor.r() / 255.f;
 		g = Vars::Grenade::SpitterColor.g() / 255.f;
@@ -110,14 +123,6 @@ static bool ResolveTargetColor(const char* name, float& r, float& g, float& b)
 		r = Vars::Grenade::SmokerColor.r() / 255.f;
 		g = Vars::Grenade::SmokerColor.g() / 255.f;
 		b = Vars::Grenade::SmokerColor.b() / 255.f;
-		return true;
-	}
-
-	if (Vars::Grenade::BloodColorChanger && contains("blood"))
-	{
-		r = Vars::Grenade::BloodColor.r() / 255.f;
-		g = Vars::Grenade::BloodColor.g() / 255.f;
-		b = Vars::Grenade::BloodColor.b() / 255.f;
 		return true;
 	}
 

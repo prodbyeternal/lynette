@@ -72,6 +72,7 @@ namespace {
 		addB("esp.velgraph",        &Vars::ESP::VelocityGraph);
 		addF("esp.velx",            &Vars::ESP::VelocityX);
 		addF("esp.vely",            &Vars::ESP::VelocityY);
+		addB("esp.watermark",       &Vars::ESP::Watermark);
 
 		// Viewmodel / FOV / Aspect
 		addB("esp.vmchanger",       &Vars::ESP::ViewModelChanger);
@@ -151,7 +152,7 @@ namespace {
 		addB("move.extendedpaths",  &Vars::Movement::ExtendedEdgeBugPaths);
 		addI("move.edgebugpaths",   &Vars::Movement::EdgeBugPaths);
 		addF("move.edgebugangle",   &Vars::Movement::EdgeBugAngle);
-		addB("move.lan",            &Vars::Movement::bLAN);
+		addB("move.forceprediction", &Vars::Movement::bForcePrediction);
 		addB("move.csmovement",     &Vars::Movement::bCSGameMovement);
 		addB("move.edgebugnodmg",   &Vars::Movement::EdgeBugNoDamage);
 		addB("move.edgebugdebug",   &Vars::Movement::EdgeBugDebugVisual);

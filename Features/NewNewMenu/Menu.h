@@ -16,4 +16,5 @@ public:
 
 struct ImFont;
 extern ImFont* verdanaFont;
+extern ImFont* indicatorFont;
 inline Menu g_Menu;

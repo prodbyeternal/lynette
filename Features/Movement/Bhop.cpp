@@ -19,12 +19,10 @@ void Movement::Bhop()
 
 	if (l4d2::local->m_fFlags() & FL_ONGROUND)
 	{
-		// On the ground and holding space — ensure jump is set this tick
 		l4d2::cmd->buttons |= IN_JUMP;
 	}
 	else
 	{
-		// In the air — strip jump so we don’t double-jump
 		l4d2::cmd->buttons &= ~IN_JUMP;
 	}
 }
@@ -38,13 +36,54 @@ void Movement::EdgeJump()
 		return;
 
 	int moveType = l4d2::local->m_MoveType();
-	if (moveType == MOVETYPE_LADDER || moveType == MOVETYPE_NOCLIP)
+	if (moveType == MOVETYPE_NOCLIP)
 		return;
+
+	static int ej_tick = 0;
 
 	if (CheckKey(Vars::Movement::kEdgeJump))
 	{
-		if (Prediction_backup::flags & FL_ONGROUND && !(l4d2::local->m_fFlags() & FL_ONGROUND))
+		bool wasOnGround = Prediction_backup::flags & FL_ONGROUND;
+		bool isOnGround = l4d2::local->m_fFlags() & FL_ONGROUND;
+
+		if (wasOnGround && !isOnGround && moveType != MOVETYPE_LADDER)
+		{
 			l4d2::cmd->buttons |= IN_JUMP;
+			ej_tick = I::GlobalVars->tickcount;
+			Detect_EJ = true;
+		}
+		else
+		{
+			Detect_EJ = false;
+		}
+
+		// Post-jump: duck and zero movement for 14 ticks after edge jump
+		if (ej_tick && I::GlobalVars->tickcount - ej_tick <= 14 && I::GlobalVars->tickcount - ej_tick > 0)
+		{
+			l4d2::cmd->buttons |= IN_DUCK;
+			l4d2::cmd->forwardmove = 0.f;
+			l4d2::cmd->sidemove = 0.f;
+		}
+
+		// Ladder exit edge jump
+		if (moveType == MOVETYPE_LADDER)
+		{
+			bool backupOnLadder = (Prediction_backup::flags & FL_ONGROUND) == 0;
+			if (backupOnLadder && isOnGround)
+			{
+				l4d2::cmd->buttons |= IN_JUMP;
+				l4d2::cmd->buttons |= IN_DUCK;
+				l4d2::cmd->forwardmove = 0.f;
+				l4d2::cmd->sidemove = 0.f;
+				ej_tick = I::GlobalVars->tickcount;
+				Detect_EJ = true;
+			}
+		}
+	}
+	else
+	{
+		ej_tick = 0;
+		Detect_EJ = false;
 	}
 }
 
@@ -75,9 +114,20 @@ void Movement::LongJump()
 		if (Should_LJ && !(l4d2::local->m_fFlags() & FL_ONGROUND))
 		{
 			l4d2::cmd->buttons |= IN_DUCK;
+			Detect_LJ = true;
+		}
+		else
+		{
+			Detect_LJ = false;
 		}
 	}
+	else
+	{
+		Detect_LJ = false;
+	}
 }
+
+static bool mj_triggered = false;
 
 void Movement::MiniJump()
 {
@@ -97,6 +147,25 @@ void Movement::MiniJump()
 		{
 			l4d2::cmd->buttons |= IN_JUMP;
 			l4d2::cmd->buttons |= IN_DUCK;
+			mj_triggered = true;
+			Detect_MJ = true;
 		}
+		else if (mj_triggered && !(l4d2::local->m_fFlags() & FL_ONGROUND) && Vars::Movement::bMiniJumpHoldDuck)
+		{
+			l4d2::cmd->buttons |= IN_DUCK;
+			Detect_MJ = false;
+		}
+		else
+		{
+			Detect_MJ = false;
+		}
+
+		if (l4d2::local->m_fFlags() & FL_ONGROUND)
+			mj_triggered = false;
+	}
+	else
+	{
+		mj_triggered = false;
+		Detect_MJ = false;
 	}
 }
