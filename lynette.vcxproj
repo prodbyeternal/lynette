@@ -331,6 +331,11 @@
     <ClInclude Include="Features\NewNewMenu\MenuBackground.h" />
     <ClInclude Include="Features\NewNewMenu\MenuControls.h" />
     <ClInclude Include="Features\NewNewMenu\MenuFonts.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaEasing.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaAnimations.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaMenu.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaTabs.h" />
+    <ClInclude Include="Features\NewNewMenu\KamiberaElements.h" />
     <ClInclude Include="Features\NewNewMenu\Singleton.hpp" />
     <ClInclude Include="Features\NoSpread\NoSpread.h" />
     <ClInclude Include="Features\Sequence Freezing\SequenceFreezing.h" />

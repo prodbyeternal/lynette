@@ -14,6 +14,7 @@ namespace Vars
 	namespace Menu
 	{
 		inline bool Opened = false;
+		inline Color AccentColor = { 210, 100, 185, 255 };
 		//inline Rect_t Position = { 100, 100, 870, 480 };
 		//inline const auto Title = L"Team Fortress 2";
 		inline int TitleBarH = 16;
@@ -251,7 +252,7 @@ namespace Vars
 		inline int kMiniJump = 0;
 		inline bool bEdgeBug = false;
 		inline int kEdgeBug = 0;
-		inline int EdgeBugTicks = 12;
+		inline int EdgeBugTicks = 16;
 		inline bool ExtendedEdgeBugPaths = false;
 		inline int EdgeBugPaths = 2;
 		inline float EdgeBugAngle = 15.f;
@@ -263,5 +264,6 @@ namespace Vars
 		inline bool EdgeBugNoDamage = false;
 		inline bool EdgeBugDebugVisual = false; // draw the predicted edgebug path in-world
 		inline float fAiraccelerate = 10.f;
+		inline bool bMiniJumpHoldDuck = true;
 	}
 }
